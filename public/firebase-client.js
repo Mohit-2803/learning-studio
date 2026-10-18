@@ -104,6 +104,21 @@ const progressRef = (uid) =>
   doc(db, "users", uid, "progress", "course-progress");
 
 function updateAccountButton() {
+  const landingActions = document.querySelector(".landing-auth-actions");
+  if (landingActions) {
+    landingActions.innerHTML = currentUser
+      ? `<span class="landing-account">Signed in as <b>${escapeText(currentUser.displayName || currentUser.email || "Learner")}</b></span><button class="landing-signout" type="button">Sign out</button>`
+      : '<a class="landing-signin" href="/auth/">Sign in</a><a class="landing-signup" href="/auth/?mode=signup">Create account</a>';
+    landingActions.querySelector(".landing-signout")?.addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+      } catch (error) {
+        console.error(error);
+      }
+    });
+    return;
+  }
+
   mount.innerHTML = currentUser
     ? `<button class="auth-account" type="button"><span class="auth-avatar">${escapeText((currentUser.displayName || currentUser.email || "L").slice(0, 1).toUpperCase())}</span><span class="auth-account-label"><b>${escapeText(currentUser.displayName || currentUser.email)}</b><small>Progress sync on</small></span><span class="auth-caret">⌄</span></button><div class="auth-menu" hidden><span>${escapeText(currentUser.email || "Signed in")}</span><button class="auth-signout" type="button">Sign out</button></div>`
     : `<button class="auth-trigger" type="button"><span>↗</span> Sign in</button>`;
