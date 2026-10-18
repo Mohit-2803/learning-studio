@@ -1,0 +1,12 @@
+{
+  "name": "learning-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A local learning hub with hands-on GraphQL and Docker courses",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "graphql": "^16.11.0"
+  }
+}

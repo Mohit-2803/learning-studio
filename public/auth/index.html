@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Sign in or create a Learning Studio account to continue learning.">
+  <title>Sign in · Learning Studio</title>
+  <link rel="stylesheet" href="/shared.css">
+  <link rel="stylesheet" href="/firebase-auth.css">
+  <link rel="stylesheet" href="/auth-page.css">
+</head>
+<body class="auth-page" data-auth-page="true">
+  <header class="auth-page-header">
+    <a class="auth-page-brand" href="/"><span class="auth-page-mark">L</span> learning<span>.studio</span></a>
+    <a href="/">Back to course library</a>
+  </header>
+  <main class="auth-page-main">
+    <section class="auth-welcome" aria-labelledby="welcomeTitle">
+      <div class="auth-page-eyebrow"><i></i> LEARN BY DOING</div>
+      <h1 id="welcomeTitle">Pick up where<br><em>you left off.</em></h1>
+      <p>One account keeps your course progress and hands-on lab work together, so you can learn at your own pace and return from any device.</p>
+      <div class="auth-benefits">
+        <article><span>01</span><div><b>Your course progress</b><small>Chapters and interview practice stay up to date.</small></div></article>
+        <article><span>02</span><div><b>Your lab work</b><small>Docker sandbox state and GraphQL experiments are yours.</small></div></article>
+        <article><span>03</span><div><b>Your account, your data</b><small>Saved learning is private to your account.</small></div></article>
+      </div>
+      <div class="auth-page-note"><span>✳</span> Start with GraphQL or Docker. Your next step will be ready when you return.</div>
+    </section>
+    <section id="auth-panel" class="auth-panel" aria-label="Account access"></section>
+  </main>
+  <script src="/progress-tracker.js"></script>
+  <script type="module" src="/firebase-client.js"></script>
+</body>
+</html>

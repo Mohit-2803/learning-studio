@@ -1,0 +1,4 @@
+* text=auto
+*.html linguist-documentation
+*.css linguist-documentation
+*.js linguist-documentation=false

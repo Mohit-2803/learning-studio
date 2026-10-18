@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Learn practical software skills through clear lessons, working examples, and hands-on labs.">
+  <title>Learning Studio · Learn by building</title>
+  <link rel="stylesheet" href="/shared.css">
+  <link rel="stylesheet" href="/home.css">
+  <link rel="stylesheet" href="/firebase-auth.css">
+</head>
+<body class="home-page">
+  <header class="home-topbar">
+    <a class="home-brand" href="/"><svg class="home-brand-logo" width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#252432"/><path d="M9 10.5L16 7L23 10.5V17.5L16 21L9 17.5V10.5Z" fill="#fff"/><path d="M16 14L19.5 12.25V16.75L16 19" fill="#f4773d"/><circle cx="23" cy="22" r="3" fill="#f4773d"/><path d="M25.5 20.5L28 22" stroke="#f4773d" stroke-width="1.5" stroke-linecap="round"/></svg> learning<span>.studio</span></a>
+    <nav><a href="#courses">Courses</a><a href="#approach">How it works</a></nav>
+    <div class="landing-auth-actions"><a class="landing-signin" href="/auth/">Sign in</a><a class="landing-signup" href="/auth/?mode=signup">Create account</a></div>
+  </header>
+  <main>
+    <section class="home-hero">
+      <div class="hero-copy">
+        <div class="home-eyebrow"><i></i> A SMALL STUDIO FOR PRACTICAL LEARNING</div>
+        <h1>Understand the idea.<br><em>Make it work.</em></h1>
+        <p>Clear, hands-on courses for the tools behind modern software. Learn the concepts, follow real examples, then try it yourself.</p>
+        <a class="primary-link" href="#courses">Find your next course <span>↓</span></a>
+        <div class="hero-proof"><span class="proof-dots"><i>G</i><i>D</i></span><span><b>2 guided courses</b><br>with more learning paths to come</span></div>
+      </div>
+      <div class="hero-visual" aria-label="Illustration of connected learning concepts">
+        <div class="visual-grid"></div><div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div>
+        <div class="visual-core"><span>learn</span><b>✳</b><small>BY DOING</small></div>
+        <div class="float-node node-query"><i>↗</i><b>Ask a question</b><small>GraphQL</small></div>
+        <div class="float-node node-build"><i>▰</i><b>Build an image</b><small>Docker</small></div>
+        <div class="float-node node-result"><i>✓</i><b>See what changed</b><small>Hands-on labs</small></div>
+        <span class="visual-star star-a">✦</span><span class="visual-star star-b">✧</span>
+      </div>
+    </section>
+    <section class="course-section" id="courses">
+      <div class="section-heading"><div><div class="home-eyebrow">THE COURSE LIBRARY</div><h2>Choose a place to start.</h2></div><p>Each course combines plain-language teaching<br>with examples you can explore at your pace.</p></div>
+      <div class="course-grid">
+        <a class="course-card graphql-card" href="/auth/?mode=signup&next=%2Fcourses%2Fgraphql%2F">
+          <div class="course-art gql-art"><div class="gql-orbit"></div><div class="gql-logo">G</div><span class="art-chip chip-one">query { ... }</span><span class="art-chip chip-two">{ data }</span><span class="art-spark">✦</span></div>
+          <div class="course-info"><div class="course-meta"><span class="course-label"><i></i> API DEVELOPMENT</span><span>18 chapters</span></div><h3>GraphQL, from client to server</h3><p>Build from queries and schema basics to pagination, resolver performance, API security, and interview scenarios.</p><div class="course-bottom"><span>Beginner → interview foundations</span><b>Start learning <i>↗</i></b></div></div>
+        </a>
+        <a class="course-card docker-card" href="/auth/?mode=signup&next=%2Fcourses%2Fdocker%2F">
+          <div class="course-art docker-art"><div class="docker-sun"></div><div class="whale"><span class="containers"><i></i><i></i><i></i><i></i><i></i><b></b></span><span class="whale-body"></span><span class="whale-tail"></span></div><span class="art-chip docker-chip">image → container</span><span class="art-spark">✦</span></div>
+          <div class="course-info"><div class="course-meta"><span class="course-label"><i></i> CONTAINERS & DEPLOYMENT</span><span>20 chapters</span></div><h3>Docker, by running it</h3><p>Practice images, Compose, health, security, releases, troubleshooting, and interview decisions in a stateful command lab.</p><div class="course-bottom"><span>Beginner → interview foundations</span><b>Start learning <i>↗</i></b></div></div>
+        </a>
+      </div>
+    </section>
+    <section class="approach-section" id="approach"><div class="approach-intro"><div class="home-eyebrow">HOW THE LESSONS WORK</div><h2>See the system.<br><em>Then change it.</em></h2><p>Good learning needs more than a definition. Each path connects the idea to the code, the work happening behind the scenes, and a place to experiment.</p></div><div class="approach-steps"><article><span>01</span><div><h3>Understand the model</h3><p>Build a useful mental picture with clear explanations and diagrams.</p></div></article><article><span>02</span><div><h3>Follow a real example</h3><p>See the commands or code, with each important piece explained.</p></div></article><article><span>03</span><div><h3>Try it and learn from the result</h3><p>Use interactive labs and short challenges to make the idea stick.</p></div></article></div></section>
+  </main>
+  <footer class="home-footer"><a class="home-brand" href="/"><svg class="home-brand-logo" width="22" height="22" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="7" fill="#252432"/><path d="M9 10.5L16 7L23 10.5V17.5L16 21L9 17.5V10.5Z" fill="#fff"/><path d="M16 14L19.5 12.25V16.75L16 19" fill="#f4773d"/><circle cx="23" cy="22" r="3" fill="#f4773d"/><path d="M25.5 20.5L28 22" stroke="#f4773d" stroke-width="1.5" stroke-linecap="round"/></svg> learning<span>.studio</span></a><span>© 2025 learning.studio • <a href="#contact" id="contactLink">Contact us</a> • <a href="https://github.com/" target="_blank">GitHub</a></span></footer>
+  <dialog id="contactDialog"><form method="dialog"><h3>Contact Learning Studio</h3><p>Questions, feedback, or course suggestions? We'd love to hear from you.</p><label>Name<input type="text" name="name" required></label><label>Email<input type="email" name="email" required></label><label>Message<textarea name="message" rows="4" required placeholder="How can we help?"></textarea></label><div class="dialog-actions"><button type="button" value="cancel">Cancel</button><button type="submit" value="send">Send message</button></div></form></dialog>
+  <script src="/progress-tracker.js"></script>
+  <script type="module" src="/firebase-client.js"></script>
+  <script>
+    // Contact dialog
+    const contactLink = document.getElementById('contactLink');
+    const contactDialog = document.getElementById('contactDialog');
+    if (contactLink && contactDialog) {
+      contactLink.onclick = (e) => { e.preventDefault(); contactDialog.showModal(); };
+      contactDialog.addEventListener('close', () => {
+        if (contactDialog.returnValue === 'send') {
+          const form = contactDialog.querySelector('form');
+          const data = Object.fromEntries(new FormData(form));
+          console.log('[Contact]', data);
+          alert('Thanks! Your message was received (demo).');
+          form.reset();
+        }
+      });
+    }
+  </script>
+</body>
+</html>
