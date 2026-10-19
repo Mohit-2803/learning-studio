@@ -47,9 +47,10 @@ Find your next course
         <span className="flex">
           <i className="grid h-[26px] w-[26px] place-items-center rounded-full border-2 border-bg-primary bg-[#e10098] font-display text-[10px] font-bold not-italic text-white">G</i>
           <i className="-ml-[7px] grid h-[26px] w-[26px] place-items-center rounded-full border-2 border-bg-primary bg-[#087eb5] font-display text-[10px] font-bold not-italic text-white">D</i>
+          <i className="-ml-[7px] grid h-[26px] w-[26px] place-items-center rounded-full border-2 border-bg-primary bg-[#336791] font-display text-[10px] font-bold not-italic text-white">P</i>
         </span>
         <span>
-          <b className="text-sm text-[#3c3b49]">2 guided courses</b>
+          <b className="text-sm text-[#3c3b49]">3 guided courses</b>
           <br />
 with more learning paths to come
         </span>
@@ -67,7 +68,7 @@ with more learning paths to come
 Learn the idea, see it in action, then try it yourself.
       </p>
     </div>
-    <div className="grid grid-cols-1 gap-[15px] min-[601px]:grid-cols-2 min-[601px]:gap-5">
+    <div className="grid grid-cols-1 gap-[15px] min-[601px]:grid-cols-2 min-[601px]:gap-5 min-[1100px]:grid-cols-3">
       <a className="overflow-hidden rounded-[13px] border border-border-subtle text-inherit no-underline transition hover:-translate-y-[3px] hover:shadow-[0_14px_35px_#32284f12]" href="/auth/?mode=signup&next=%2Fcourses%2Fgraphql%2F">
         <div className={"course-art gql-art"}>
           <img className={"gql-logo"} src="/brands/graphql-hexagraph.svg" width={96} height={96} alt="GraphQL hexagraph logo" />
@@ -90,6 +91,17 @@ Start learning
               <i className="ml-[7px] not-italic">↗</i>
             </b>
           </div>
+        </div>
+      </a>
+      <a className="postgres-card overflow-hidden rounded-[13px] border border-border-subtle text-inherit no-underline transition hover:-translate-y-[3px] hover:shadow-[0_14px_35px_#32284f12]" href="/auth/?mode=signup&next=%2Fcourses%2Fpostgres%2F">
+        <div className="course-art postgres-art">
+          <img className="postgres-card-mark" src="/brands/postgresql-elephant.svg" width="120" height="124" alt="PostgreSQL elephant logo" />
+        </div>
+        <div className="p-[17px] sm:px-[22px] sm:pb-[18px] sm:pt-5">
+          <div className="flex justify-between gap-3 font-mono text-xs text-[#777583]"><span className="text-[#336791]">DATABASES &amp; SQL</span><span>20 chapters</span></div>
+          <h3 className="mb-[7px] mt-[15px] font-display text-base font-bold tracking-[-0.5px] sm:text-lg">PostgreSQL, by querying it</h3>
+          <p className="m-0 max-w-[510px] text-sm leading-[1.65] text-[#686877]">Beginner-friendly SQL: tables, WHERE, joins (inner, left, right), writes, aggregates, and a live sandbox on every chapter.</p>
+          <div className="course-bottom mt-[17px] flex items-center justify-between gap-3 border-t border-border-subtle pt-[15px] text-sm text-[#686877]"><span>Beginner friendly · 14 lessons</span><b className="text-sm text-[#336791]">Start learning<i className="ml-[7px] not-italic">↗</i></b></div>
         </div>
       </a>
       <a className="docker-card overflow-hidden rounded-[13px] border border-border-subtle text-inherit no-underline transition hover:-translate-y-[3px] hover:shadow-[0_14px_35px_#32284f12]" href="/auth/?mode=signup&next=%2Fcourses%2Fdocker%2F">

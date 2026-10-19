@@ -65,7 +65,6 @@ learning
   <main id="main-content" className="mx-auto w-full max-w-[1070px] px-[30px] pt-[33px] min-[951px]:px-[52px] max-[720px]:px-[17px] max-[720px]:pt-6">
     <div className={"crumb"}>
       <a href={"/"}>
-        <img className={"brand-mark-small"} src={"/brand-mark.svg"} width={16} height={16} alt={""} aria-hidden={"true"} />
  ALL COURSES
       </a>
       <span>/</span>

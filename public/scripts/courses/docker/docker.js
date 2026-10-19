@@ -591,7 +591,7 @@ const lessonWalkthroughs = [
 lessonGuides.forEach((guide, index) => {
   guide.walkthrough = lessonWalkthroughs[index] || [];
 });
-const dockerCurriculumVersion = 3;
+const dockerCurriculumVersion = 4;
 lessons.unshift({
   kicker: "CHAPTER 00 · START HERE",
   title: "What Docker is—and what it runs",
@@ -941,9 +941,8 @@ const dockerMissionsCompleted = new Set(
   (() => {
     try {
       const saved = JSON.parse(localStorage.getItem("docker-missions-completed") || "[]");
-      const indices = Array.isArray(saved)
-        ? saved.map((index) => Number(index) + 1)
-        : saved?.version >= dockerCurriculumVersion && Array.isArray(saved.indices)
+      const indices =
+        saved?.version >= dockerCurriculumVersion && Array.isArray(saved.indices)
           ? saved.indices.map(Number)
           : [];
       return indices.filter((index) => Number.isInteger(index) && index >= 0 && index < lessons.length);
@@ -954,10 +953,10 @@ const dockerMissionsCompleted = new Set(
 );
 try {
   const saved = JSON.parse(localStorage.getItem("docker-missions-completed") || "[]");
-  if (Array.isArray(saved)) {
+  if (!saved || saved.version < dockerCurriculumVersion || !Array.isArray(saved.indices)) {
     localStorage.setItem("docker-missions-completed", JSON.stringify({
       version: dockerCurriculumVersion,
-      indices: [...dockerMissionsCompleted].sort((a, b) => a - b),
+      indices: [],
     }));
   }
 } catch {}
@@ -1035,10 +1034,12 @@ let state = newState(),
   activeChapter = 0,
   activeFile = "Dockerfile",
   fileDirty = false,
+  dockerLabInteracted = false,
   history = [],
   historyIndex = 0;
 
 function saveDockerLabState() {
+  dockerLabInteracted = true;
   const snapshot = {
     files: state.files,
     projectDirectories: state.projectDirectories,
@@ -1090,13 +1091,27 @@ function restoreDockerLabState(snapshot) {
   restored.buildNumber = Number(snapshot.buildNumber) || 0;
   restored.compose = { ...restored.compose, ...(snapshot.compose || {}), running: false };
   restored.flags = { ...restored.flags, ...(snapshot.flags || {}) };
+  restored.flags.engineChecked = false;
   restored.engine = { running: false, context: snapshot.context || "desktop-linux" };
   restored.shell = { container: null, cwd: "/app" };
+  for (const container of restored.containers.values()) {
+    const listenPort = simulatedListenPort(container.image || "");
+    container.logs = (container.logs || []).map((line) =>
+      line.replace(/listening on 0\.0\.0\.0:\d+/, `listening on 0.0.0.0:${listenPort}`),
+    );
+    container.handlesSigterm = simulatedHandlesSigterm(container.image || "", container.files || {});
+    if (container.handlesSigterm) {
+      container.logs = container.logs.map((line) =>
+        line === "process did not exit before timeout; Docker sent SIGKILL"
+          ? "application closed cleanly before the stop timeout"
+          : line,
+      );
+      if (container.status !== "running" && container.exitCode === 137)
+        container.exitCode = 0;
+    }
+  }
   state = restored;
   if (!projectDirectoryExists(state.projectCwd)) state.projectCwd = ".";
-  lessons.forEach((lesson, index) => {
-    if (lesson.mission.check(state)) saveDockerMissionCompletion(index);
-  });
   for (const container of state.containers.values()) {
     if (container.status === "running") {
       container.status = "stopped";
@@ -1108,13 +1123,14 @@ function restoreDockerLabState(snapshot) {
 
 window.addEventListener("learning:progress-restored", (event) => {
   const { key, value } = event.detail || {};
-  if (key === "docker-lab-state") restoreDockerLabState(value);
+  if (key === "docker-lab-state" && !dockerLabInteracted)
+    restoreDockerLabState(value);
   if (key === "docker-course-state" && Number.isInteger(Number(value?.active))) {
     const savedIndex =
       Number(value.active) +
       (Number(value.courseVersion) < dockerCurriculumVersion ? 1 : 0);
     requestAnimationFrame(() => {
-      const hasCompletedMission = dockerMissionsCompleted.size > 0 || lessons.some((lesson) => lesson.mission.check(state));
+      const hasCompletedMission = dockerMissionsCompleted.size > 0;
       const chapterToRestore = hasCompletedMission
         ? Math.max(0, Math.min(lessons.length - 1, savedIndex))
         : 0;
@@ -1128,18 +1144,26 @@ window.addEventListener("learning:progress-restored", (event) => {
   }
   if (key === "docker-missions-completed" && Array.isArray(value)) {
     dockerMissionsCompleted.clear();
-    value.map((index) => Number(index) + 1)
-      .filter((index) => Number.isInteger(index) && index >= 0 && index < lessons.length)
-      .forEach((index) => dockerMissionsCompleted.add(index));
+    localStorage.setItem("docker-missions-completed", JSON.stringify({
+      version: dockerCurriculumVersion,
+      indices: [],
+    }));
     renderCourseProgress();
     updateMission();
   }
   if (key === "docker-missions-completed" && value && !Array.isArray(value)) {
     dockerMissionsCompleted.clear();
-    (value.version >= dockerCurriculumVersion && Array.isArray(value.indices) ? value.indices : [])
-      .map(Number)
-      .filter((index) => Number.isInteger(index) && index >= 0 && index < lessons.length)
-      .forEach((index) => dockerMissionsCompleted.add(index));
+    if (value.version >= dockerCurriculumVersion && Array.isArray(value.indices)) {
+      value.indices
+        .map(Number)
+        .filter((index) => Number.isInteger(index) && index >= 0 && index < lessons.length)
+        .forEach((index) => dockerMissionsCompleted.add(index));
+    } else {
+      localStorage.setItem("docker-missions-completed", JSON.stringify({
+        version: dockerCurriculumVersion,
+        indices: [],
+      }));
+    }
     renderCourseProgress();
     updateMission();
   }
@@ -1517,7 +1541,7 @@ function execute(raw) {
   if (!state.engine.running)
     return result(
       false,
-      "Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?",
+      "Cannot connect to the Docker daemon. The modeled Docker Engine is not running in this browser lab.",
       "Docker Engine is not running",
       "The Docker CLI is available, but no Engine daemon is accepting requests. Start Docker Engine in the runtime, then retry this command.",
       "Start Docker Engine, then run docker info.",
@@ -2349,6 +2373,16 @@ function historyCommand(tokens) {
     "build",
   );
 }
+function simulatedListenPort(image) {
+  if (image.includes("postgres")) return "5432";
+  if (image.startsWith("nginx")) return "80";
+  if (image.startsWith("redis")) return "6379";
+  return "3000";
+}
+function simulatedHandlesSigterm(image, files = {}) {
+  return /^(?:nginx|postgres|redis)(?::|$)/.test(image) ||
+    /process\.on\(\s*["']SIGTERM["']/.test(files["server.js"] || "");
+}
 function runContainerCommand(tokens) {
   const imageIndex = imageTokenIndex(tokens);
   const image = imageName(tokens);
@@ -2557,9 +2591,7 @@ function runContainerCommand(tokens) {
     deletedImageFiles: [],
     deletedImageDirectories: [],
     status: startupFailure ? "stopped" : "running",
-    handlesSigterm: /process\.on\(\s*["']SIGTERM["']/.test(
-      imageFiles["server.js"] || "",
-    ),
+    handlesSigterm: simulatedHandlesSigterm(image, imageFiles),
     health,
     healthcheck,
     restart: option(tokens, "--restart") || "no",
@@ -2577,7 +2609,7 @@ function runContainerCommand(tokens) {
       ? [`${name} | Error: Cannot find module '/app/${scriptPath}'`]
       : [
           `${name} | process started${command.length ? `: ${command.join(" ")}` : ""}`,
-          ` ${name} | listening on 0.0.0.0:${image.includes("postgres") ? "5432" : "3000"}`,
+          ` ${name} | listening on 0.0.0.0:${simulatedListenPort(image)}`,
         ],
     created: "just now",
     exitCode: startupFailure ? 1 : null,
@@ -2670,7 +2702,23 @@ function objectCommand(action, tokens) {
             !/^\d+$/.test(t),
         )
       : tokens[2];
+  if (!name)
+    return result(
+      false,
+      `docker ${action} requires a container name or ID`,
+      "A container name is required",
+      "Use docker ps -a to find a container name. For example, docker start web starts the stopped container named web.",
+      "docker ps -a",
+    );
   const c = state.containers.get(name);
+  if (!c && state.images.has(name))
+    return result(
+      false,
+      `Error response from daemon: ${name} is an image, not a container`,
+      "This command needs a container name",
+      "docker run creates a container from an image. Use docker ps -a to find that container, then pass its name or ID to docker start.",
+      "docker ps -a",
+    );
   if (!c)
     return result(
       false,
@@ -2689,6 +2737,7 @@ function objectCommand(action, tokens) {
         `docker start ${name}`,
       );
     c.status = "stopped";
+    c.handlesSigterm = simulatedHandlesSigterm(c.image, c.files);
     c.exitCode = c.handlesSigterm ? 0 : 137;
     c.logs.push(
       `main process received ${c.stopSignal || "SIGTERM"}`,
@@ -2721,6 +2770,10 @@ function objectCommand(action, tokens) {
       );
     c.status = "running";
     c.exitCode = null;
+    c.logs.push(
+      `${name} | process started${c.command?.length ? `: ${c.command.join(" ")}` : ""}`,
+      ` ${name} | listening on 0.0.0.0:${simulatedListenPort(c.image)}`,
+    );
     if (state.flags.lifecycleStopped) state.flags.lifecycleRecovered = true;
     addEvent("container start", name);
     return result(
@@ -3228,6 +3281,19 @@ function composeCommand(tokens) {
         `docker stop ${occupiedPort.name}`,
         "files",
       );
+    let composeBuild = null;
+    if (/^\s+build\s*:/m.test(state.files["compose.yaml"] || "")) {
+      composeBuild = buildCommand(["docker", "build", "-t", "notes-api", "."]);
+      if (!composeBuild.ok)
+        return result(
+          false,
+          composeBuild.text,
+          "Compose could not build the app image",
+          composeBuild.explanation,
+          composeBuild.next,
+          composeBuild.view,
+        );
+    }
     state.images.set(
       "notes-api",
       state.images.get("notes-api") || {
@@ -3238,20 +3304,24 @@ function composeCommand(tokens) {
         created: "just now",
       },
     );
-    state.images.set("postgres:16", {
-      name: "postgres:16",
-      id: uid("sha256:"),
-      size: "248 MB",
-      source: "registry",
-      created: "just now",
-    });
-    state.volumes.set("notes-api_db-data", {
-      name: "notes-api_db-data",
-      driver: "local",
-      created: "just now",
-      files: {},
-      directories: [],
-    });
+    if (!state.images.has("postgres:16"))
+      state.images.set("postgres:16", {
+        name: "postgres:16",
+        id: uid("sha256:"),
+        size: "248 MB",
+        source: "registry",
+        created: "just now",
+      });
+    const networkCreated = !state.networks.has("notes-api_default");
+    const volumeCreated = !state.volumes.has("notes-api_db-data");
+    if (volumeCreated)
+      state.volumes.set("notes-api_db-data", {
+        name: "notes-api_db-data",
+        driver: "local",
+        created: "just now",
+        files: {},
+        directories: [],
+      });
     const network = ensureNetwork("notes-api_default");
     const services = [
       ["notes-api-app", "notes-api", [{ host: "8080", container: "3000" }], []],
@@ -3262,6 +3332,7 @@ function composeCommand(tokens) {
         [{ source: "notes-api_db-data", target: "/var/lib/postgresql/data" }],
       ],
     ];
+    const serviceStatuses = new Map();
     for (const [name, image, ports, mounts] of services) {
       if (state.containers.has(name)) {
         const existing = state.containers.get(name);
@@ -3269,9 +3340,13 @@ function composeCommand(tokens) {
           existing.status = "running";
           existing.exitCode = null;
           existing.logs.push(`${name} | started by compose`);
-          attach(existing, network.name);
+          existing.logs.push(`${name} | ${name.endsWith("db") ? "database ready" : "listening on 3000"}`);
           addEvent("compose start", name);
+          serviceStatuses.set(name, "Started");
+        } else {
+          serviceStatuses.set(name, "Running");
         }
+        attach(existing, network.name);
         continue;
       }
       const container = {
@@ -3298,12 +3373,22 @@ function composeCommand(tokens) {
       };
       state.containers.set(name, container);
       attach(container, network.name);
+      addEvent("compose create", name);
       addEvent("compose start", name);
+      serviceStatuses.set(name, "Started");
     }
     state.compose.running = true;
+    const statusLine = (kind, name, status) =>
+      ` ✔ ${kind} ${name.padEnd(kind === "Container" ? 23 : 25)} ${status}`;
+    const composeOutput = [
+      "[+] Running 4/4",
+      statusLine("Network", "notes-api_default", networkCreated ? "Created" : "Reused"),
+      statusLine("Volume", "notes-api_db-data", volumeCreated ? "Created" : "Reused"),
+      ...services.map(([name]) => statusLine("Container", name, serviceStatuses.get(name) || "Running")),
+    ].join("\n");
     return result(
       true,
-      "[+] Running 4/4\n ✔ Network notes-api_default  Created\n ✔ Volume notes-api_db-data   Created\n ✔ Container notes-api-db     Started\n ✔ Container notes-api-app    Started",
+      `${composeBuild ? `${composeBuild.text}\n` : ""}${composeOutput}`,
       "Compose project is running",
       "Compose translated one YAML model into images, containers, a network, a volume, environment, and a published port.",
       "curl http://localhost:8080",
@@ -3520,6 +3605,9 @@ function renderChapter(index) {
       .join("")}</ol>`;
   $("#lessonContext").innerHTML =
     `<div class="lesson-context-head"><span>WHY THIS MATTERS</span><b>${level}</b></div><p class="context-explanation">${formatInlineCode(guide.why)}</p><div class="context-cards"><article><b>Where you will use it</b><p>${formatInlineCode(guide.realUse)}</p></article><article><b>Common mistake</b><p>${formatInlineCode(guide.commonTrap)}</p></article></div><div class="context-check"><span>LEARNING CHECK</span><p>${formatInlineCode(guide.checkpoint)}</p></div>`;
+  $(".docker-lab-page .course-chapter-faq")?.remove();
+  $("#lessonContext").insertAdjacentHTML("beforeend", renderDockerChapterFaq(index, lesson, guide));
+  $(".lesson-content").after($("#lessonContext .course-chapter-faq"));
   $("#missionTitle").textContent = lesson.mission.title;
   $("#missionPrompt").textContent = lesson.mission.prompt;
   $("#missionSteps").innerHTML = lesson.mission.steps
@@ -3535,6 +3623,47 @@ function renderChapter(index) {
   $("#capstone").hidden = index !== lessons.length - 1;
   updateMission();
   if (index === lessons.length - 1) renderCapstone();
+}
+function renderDockerChapterFaq(index, lesson, guide) {
+  const sourceByChapter = [
+    "https://docs.docker.com/get-started/docker-overview/",
+    "https://docs.docker.com/get-started/docker-overview/",
+    "https://docs.docker.com/reference/dockerfile/",
+    "https://docs.docker.com/engine/containers/run/",
+    "https://docs.docker.com/reference/cli/docker/container/stop/",
+    "https://docs.docker.com/engine/network/",
+    "https://docs.docker.com/reference/cli/docker/container/run/",
+    "https://docs.docker.com/engine/storage/",
+    "https://docs.docker.com/engine/network/",
+    "https://docs.docker.com/compose/",
+    "https://docs.docker.com/build/cache/",
+    "https://docs.docker.com/reference/cli/docker/container/logs/",
+    "https://docs.docker.com/reference/dockerfile/",
+    "https://docs.docker.com/engine/containers/resource_constraints/",
+    "https://docs.docker.com/build/building/multi-stage/",
+    "https://docs.docker.com/build/building/secrets/",
+    "https://docs.docker.com/reference/cli/docker/image/push/",
+    "https://docs.docker.com/engine/security/",
+    "https://docs.docker.com/reference/cli/docker/compose/config/",
+    "https://docs.docker.com/reference/cli/docker/container/logs/",
+    "https://docs.docker.com/engine/storage/bind-mounts/",
+    "https://docs.docker.com/reference/dockerfile/",
+    "https://docs.docker.com/compose/",
+    "https://docs.docker.com/reference/cli/docker/container/logs/",
+    "https://docs.docker.com/reference/cli/docker/container/stop/",
+    "https://docs.docker.com/compose/",
+  ];
+  const source = sourceByChapter[index] || "https://docs.docker.com/get-started/docker-overview/";
+  const conceptText = lesson.concepts.map(([name, detail]) => `${name}: ${detail}`).join(" ");
+  const steps = lesson.mission.steps.join(" → ");
+  const questions = [
+    [`What does “${lesson.title}” mean in a real project?`, `${lesson.summary} In a project, this matters when a teammate needs to repeat the same operation and understand which Docker object or setting is responsible for the result. ${guide.realUse}`],
+    [`What changes when I use the ideas in this chapter?`, `${lesson.model} The specific pieces to keep straight are: ${conceptText} A command can create or configure an object, but it does not silently change every other object around it.`],
+    [`How can I tell that my task actually worked?`, `Use the evidence in the lab rather than relying only on a successful command response. For this chapter, the useful sequence is ${steps}. Then check: ${guide.checkpoint} This distinction is useful in interviews too: describe the observed state, not just the command you typed.`],
+    [`What common mistake should I avoid with “${lesson.title}”?`, `${guide.commonTrap} If the result looks wrong, inspect the relevant object and its configuration first, then compare it with the expected state. ${guide.checkpoint}`],
+    [`How should I explain this chapter in an interview?`, `Tie the idea to a decision a team makes: ${guide.realUse} Explain what Docker changes, what stays separate, and how you would verify the result. The browser lab models Docker behavior for practice; it does not start a real Engine or change files on your computer.`],
+  ];
+  return `<section class="course-chapter-faq" aria-labelledby="dockerFaqTitle"><div class="course-faq-heading"><span>COMMON QUESTIONS</span><h3 id="dockerFaqTitle">Questions learners ask about this chapter</h3><p>Five practical answers, connected to the chapter and official Docker documentation.</p></div>${questions.map(([question, answer]) => `<details class="course-faq-item"><summary>${escapeHtml(question)}</summary><div class="course-faq-answer"><p>${escapeHtml(answer)}</p><a href="${source}" target="_blank" rel="noreferrer">Official Docker docs for ${escapeHtml(lesson.title)} ↗</a></div></details>`).join("")}</section>`;
 }
 function updateMission() {
   const doneNow = lessons[activeChapter].mission.check(state);
@@ -3555,9 +3684,6 @@ function renderAll() {
   renderCapstone();
 }
 function renderCourseProgress() {
-  lessons.forEach((lesson, index) => {
-    if (lesson.mission.check(state)) saveDockerMissionCompletion(index);
-  });
   const complete = dockerMissionsCompleted.size;
   $("#progressText").textContent =
     `${String(complete).padStart(2, "0")} / ${lessons.length}`;
@@ -3565,6 +3691,7 @@ function renderCourseProgress() {
 }
 function renderEngine() {
   const online = state.engine.running;
+  if (!online && !engineBusy) renderEngineOfflinePrompt();
   $("#engineBadge").classList.toggle("offline", !online);
   $("#engineBadge").classList.toggle("online", online);
   $("#engineBadge").innerHTML =
@@ -3584,6 +3711,15 @@ function renderEngine() {
   $(".terminal-prompt label").textContent = state.shell.container
     ? `root@${state.shell.container}:/app #`
     : `learner@docker-lab:~/${state.projectCwd === "." ? "notes-api" : `notes-api/${state.projectCwd}`} $`;
+}
+function renderEngineOfflinePrompt() {
+  $("#engineStartupSteps").innerHTML =
+    "<span>1 · Start the modeled Engine above</span><span>2 · Initialize the simulated daemon</span><span>3 · Open the sandbox API endpoint</span><span>4 · Confirm the connection with docker info</span>";
+  const coach = $("#diagnosticContent .coach-card");
+  if (coach?.querySelector("b")?.textContent === "Docker Engine is ready") {
+    $("#diagnosticContent").innerHTML =
+      `<div class="coach-card"><b>Docker Engine is offline</b><p>Your saved files and Docker objects are restored, but the modeled Engine starts stopped. Start it above, then run docker info to reconnect the CLI.</p><code>Start Docker Engine, then run docker info</code></div>`;
+  }
 }
 function renderObjects() {
   const containers = [...state.containers.values()],
@@ -3827,6 +3963,13 @@ function appendTerminal(command, r) {
   $("#terminalHistory").append(entry);
   $("#terminalOutput").scrollTop = $("#terminalOutput").scrollHeight;
 }
+function appendTerminalSystemNotice(message, stateName) {
+  const entry = document.createElement("div");
+  entry.className = `terminal-system-notice ${stateName}`;
+  entry.textContent = message;
+  $("#terminalHistory").append(entry);
+  $("#terminalOutput").scrollTop = $("#terminalOutput").scrollHeight;
+}
 function operationStages(command) {
   let tokens;
   try {
@@ -3959,6 +4102,7 @@ async function runCommand(raw) {
     .map((s) => s.trim())
     .filter(Boolean);
   if (!commands.length) return;
+  dockerLabInteracted = true;
   commandBusy = true;
   $("#terminalOutput .terminal-welcome")?.remove();
   renderEngine();
@@ -3985,6 +4129,7 @@ async function runCommand(raw) {
 
 async function toggleEngine() {
   if (engineBusy || commandBusy) return;
+  dockerLabInteracted = true;
   engineBusy = true;
   renderEngine();
   const button = $("#startEngine");
@@ -4013,6 +4158,7 @@ async function toggleEngine() {
     state.engine.running = false;
     state.flags.engineChecked = false;
     state.compose.running = false;
+    appendTerminalSystemNotice("Modeled Docker Engine stopped · Docker commands now fail until it starts again.", "offline");
     $("#engineStartupSteps").innerHTML =
       "<span>1 · Start the modeled engine above</span><span>2 · Wait for the daemon</span><span>3 · Check the connection</span>";
     addEvent("engine stopped", "Docker daemon offline");
@@ -4021,9 +4167,9 @@ async function toggleEngine() {
   } else {
     const stages = [
       "Start the modeled Engine",
-      "Start the Linux engine backend",
-      "Start the Docker daemon",
-      "Wait for the API socket",
+      "Initialize the simulated daemon",
+      "Open the sandbox API endpoint",
+      "Confirm the connection with docker info",
     ];
     $("#engineBadge").innerHTML = "<i></i>DOCKER ENGINE STARTING";
     button.textContent = "Starting Engine…";
@@ -4044,6 +4190,7 @@ async function toggleEngine() {
       step.classList.add("done");
     });
     state.engine.running = true;
+    appendTerminalSystemNotice("Modeled Docker Engine started · Docker commands can reach the sandbox daemon.", "online");
     addEvent("engine ready", `${state.engine.context} · API available`);
     $("#diagnosticContent").innerHTML =
       `<div class="coach-card success"><b>Docker Engine is ready</b><p>The CLI can now reach the daemon. Confirm its version and current state before pulling or building images.</p><code>docker info</code></div>`;
@@ -4199,6 +4346,7 @@ $$(".engine-tabs button").forEach(
   (b) => (b.onclick = () => switchView(b.dataset.view)),
 );
 $("#fileEditor").oninput = () => {
+  dockerLabInteracted = true;
   fileDirty = true;
   $("#fileDirty").textContent = "UNSAVED";
   $("#fileDirty").className = "dirty";
@@ -4278,6 +4426,11 @@ $("#resetRuntime").onclick = () => {
   renderChapter(0);
   renderAll();
 };
+try {
+  const localLabState = localStorage.getItem("docker-lab-state");
+  if (localLabState) restoreDockerLabState(JSON.parse(localLabState));
+} catch (error) {
+  console.warn("Could not restore local Docker lab state", error);
+}
 renderChapter(0);
 renderAll();
-window.__learningDirtyKeys?.clear();

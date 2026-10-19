@@ -37,17 +37,20 @@ const trackedKeys = [
   "docker-missions-completed",
   "docker-course-state",
   "docker-lab-state",
+  "postgres-missions-completed",
+  "postgres-course-state",
 ];
 const authPage =
   document.body.dataset.authPage === "true" ||
   document.querySelector('[data-auth-page="true"]') !== null;
 const homePage = document.querySelector(".home-page") !== null;
-const mount = document.querySelector(".course-account-mount") || document.createElement("div");
+const mount =
+  document.querySelector(".course-account-mount") ||
+  document.createElement("div");
 mount.classList.add("auth-mount");
 const header = document.querySelector("header");
 if (!authPage && header && !homePage && !mount.isConnected) {
-  const target =
-    header.querySelector(".top-right, .top-cta") || header;
+  const target = header.querySelector(".top-right, .top-cta") || header;
   target.before(mount);
 }
 
@@ -84,12 +87,15 @@ let app,
   currentUser = null,
   syncing = false,
   pendingSync = false,
+  syncFailureCount = 0,
   saveTimer = 0;
 let lastSyncedSessionToken = "";
 let inFlightSessionToken = "";
 let inFlightSessionPromise = null;
 let resolveAuthReady;
-const authReady = new Promise((resolve) => { resolveAuthReady = resolve; });
+const authReady = new Promise((resolve) => {
+  resolveAuthReady = resolve;
+});
 const dirtyKeys = window.__learningDirtyKeys || new Map();
 const form = modal.querySelector("#authForm");
 const message = modal.querySelector(".auth-message");
@@ -102,9 +108,15 @@ const showMessage = (text, variant = "success") => {
   message.hidden = !text;
   message.classList.toggle("is-error", variant === "error");
   message.classList.toggle("is-pending", variant === "loading");
-  message.classList.toggle("is-success", variant === "success" && Boolean(text));
+  message.classList.toggle(
+    "is-success",
+    variant === "success" && Boolean(text),
+  );
   message.setAttribute("role", variant === "error" ? "alert" : "status");
-  message.setAttribute("aria-live", variant === "error" ? "assertive" : "polite");
+  message.setAttribute(
+    "aria-live",
+    variant === "error" ? "assertive" : "polite",
+  );
 };
 const friendlyError = (error) => {
   // Firebase errors normally expose `code`, but wrappers and older auth builds
@@ -131,7 +143,8 @@ const friendlyError = (error) => {
       "This sign-in method is unavailable right now. Try another method or contact support.",
     "auth/unauthorized-domain":
       "Sign-in isn’t configured for this site. Contact support for help.",
-    "auth/network-request-failed": "Could not reach Firebase. Check your connection and try again.",
+    "auth/network-request-failed":
+      "Could not reach Firebase. Check your connection and try again.",
     "auth/popup-closed-by-user":
       "The sign-in window was closed before finishing.",
     "permission-denied":
@@ -139,10 +152,52 @@ const friendlyError = (error) => {
     "failed-precondition":
       "Progress syncing isn’t available right now. Try again later.",
   };
-  return messages[errorCode] || "We couldn’t complete that request. Please try again.";
+  return (
+    messages[errorCode] ||
+    "We couldn’t complete that request. Please try again."
+  );
 };
 const progressRef = (uid) =>
   doc(db, "users", uid, "progress", "course-progress");
+const nestedArrayMarker = "learningStudioNestedArrayValue";
+function encodeFirestoreValue(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) =>
+      Array.isArray(item)
+        ? { [nestedArrayMarker]: encodeFirestoreValue(item) }
+        : encodeFirestoreValue(item),
+    );
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [
+        key,
+        encodeFirestoreValue(item),
+      ]),
+    );
+  }
+  return value;
+}
+function decodeFirestoreValue(value) {
+  if (Array.isArray(value)) return value.map(decodeFirestoreValue);
+  if (value && typeof value === "object") {
+    const keys = Object.keys(value);
+    if (
+      keys.length === 1 &&
+      keys[0] === nestedArrayMarker &&
+      Array.isArray(value[nestedArrayMarker])
+    ) {
+      return value[nestedArrayMarker].map(decodeFirestoreValue);
+    }
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [
+        key,
+        decodeFirestoreValue(item),
+      ]),
+    );
+  }
+  return value;
+}
 
 async function syncServerSession(user) {
   if (!user) {
@@ -163,7 +218,8 @@ async function syncServerSession(user) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idToken }),
     });
-    if (!response.ok) throw new Error("Could not establish the secure course session.");
+    if (!response.ok)
+      throw new Error("Could not establish the secure course session.");
     lastSyncedSessionToken = idToken;
   })();
   try {
@@ -180,10 +236,14 @@ function updateAccountButton() {
   const landingActions = document.querySelector(".landing-auth-actions");
   if (landingActions) {
     if (currentUser) {
-      landingActions.innerHTML = '<div class="auth-mount landing-account-mount"></div>';
-      renderSignedInAccount(landingActions.querySelector(".auth-mount"), { compact: true });
+      landingActions.innerHTML =
+        '<div class="auth-mount landing-account-mount"></div>';
+      renderSignedInAccount(landingActions.querySelector(".auth-mount"), {
+        compact: true,
+      });
     } else {
-      landingActions.innerHTML = '<a class="landing-signin" href="/auth/">Sign in</a><a class="landing-signup" href="/auth/?mode=signup">Create account</a>';
+      landingActions.innerHTML =
+        '<a class="landing-signin" href="/auth/">Sign in</a><a class="landing-signup" href="/auth/?mode=signup">Create account</a>';
     }
     landingActions.setAttribute("aria-busy", "false");
     return;
@@ -214,7 +274,7 @@ function renderSignedInAccount(container, { compact = false } = {}) {
     ? `<img class="auth-avatar-image" src="${escapeText(photoURL)}" alt="" referrerpolicy="no-referrer">`
     : `<span class="auth-avatar" aria-hidden="true">${escapeText(initials)}</span>`;
 
-  container.innerHTML = `<button class="auth-account${compact ? " auth-account-compact" : ""}" type="button" aria-label="Open account menu" aria-haspopup="true" aria-expanded="false">${avatar}<span class="auth-account-label"><b>${escapeText(displayName)}</b>${compact ? "" : '<small>Progress sync on</small>'}</span><span class="auth-caret" aria-hidden="true">⌄</span></button><div class="auth-menu" role="group" aria-label="Account options" hidden><div class="auth-menu-profile">${avatar}<div class="auth-menu-profile-copy"><span class="auth-menu-name">${escapeText(displayName)}</span><span class="auth-menu-email">${escapeText(currentUser.email || "Signed in")}</span></div></div><div class="auth-menu-divider" aria-hidden="true"></div><button class="auth-signout" type="button"><svg aria-hidden="true" viewBox="0 0 20 20"><path d="M8.25 3.5h-3A1.75 1.75 0 0 0 3.5 5.25v9.5A1.75 1.75 0 0 0 5.25 16.5h3M11 13.5l3.5-3.5L11 6.5M14.25 10H7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/></svg><span>Sign out</span></button><div class="auth-signout-confirm" hidden><div class="auth-signout-question"><span class="auth-confirm-mark" aria-hidden="true">?</span><div><b>Sign out?</b><p>Are you sure you want to sign out?</p></div></div><div class="auth-confirm-actions"><button class="auth-confirm-cancel" type="button">Cancel</button><button class="auth-confirm-yes" type="button">Sign out</button></div><p class="auth-signout-error" role="status" aria-live="polite" hidden></p></div></div>`;
+  container.innerHTML = `<button class="auth-account${compact ? " auth-account-compact" : ""}" type="button" aria-label="Open account menu" aria-haspopup="true" aria-expanded="false">${avatar}<span class="auth-account-label"><b>${escapeText(displayName)}</b>${compact ? "" : "<small>Progress sync on</small>"}</span><span class="auth-caret" aria-hidden="true">⌄</span></button><div class="auth-menu" role="group" aria-label="Account options" hidden><div class="auth-menu-profile">${avatar}<div class="auth-menu-profile-copy"><span class="auth-menu-name">${escapeText(displayName)}</span><span class="auth-menu-email">${escapeText(currentUser.email || "Signed in")}</span></div></div><div class="auth-menu-divider" aria-hidden="true"></div><button class="auth-signout" type="button"><svg aria-hidden="true" viewBox="0 0 20 20"><path d="M8.25 3.5h-3A1.75 1.75 0 0 0 3.5 5.25v9.5A1.75 1.75 0 0 0 5.25 16.5h3M11 13.5l3.5-3.5L11 6.5M14.25 10H7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/></svg><span>Sign out</span></button><div class="auth-signout-confirm" hidden><div class="auth-signout-question"><span class="auth-confirm-mark" aria-hidden="true">?</span><div><b>Sign out?</b><p>Are you sure you want to sign out?</p></div></div><div class="auth-confirm-actions"><button class="auth-confirm-cancel" type="button">Cancel</button><button class="auth-confirm-yes" type="button">Sign out</button></div><p class="auth-signout-error" role="status" aria-live="polite" hidden></p></div></div>`;
 
   const trigger = container.querySelector(".auth-account");
   const menu = container.querySelector(".auth-menu");
@@ -272,7 +332,10 @@ function resetSignOutConfirmation(menu) {
 
 function closeAccountMenu(menu) {
   menu.hidden = true;
-  menu.closest(".auth-mount")?.querySelector(".auth-account")?.setAttribute("aria-expanded", "false");
+  menu
+    .closest(".auth-mount")
+    ?.querySelector(".auth-account")
+    ?.setAttribute("aria-expanded", "false");
   resetSignOutConfirmation(menu);
 }
 
@@ -288,19 +351,23 @@ function safeProfilePhotoURL(value) {
 
 document.addEventListener("click", (event) => {
   if (!(event.target instanceof Element)) return;
-  document.querySelectorAll(".auth-mount .auth-menu:not([hidden])").forEach((menu) => {
-    const container = menu.closest(".auth-mount");
-    if (!container?.contains(event.target)) {
-      closeAccountMenu(menu);
-    }
-  });
+  document
+    .querySelectorAll(".auth-mount .auth-menu:not([hidden])")
+    .forEach((menu) => {
+      const container = menu.closest(".auth-mount");
+      if (!container?.contains(event.target)) {
+        closeAccountMenu(menu);
+      }
+    });
 });
 
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
-  document.querySelectorAll(".auth-mount .auth-menu:not([hidden])").forEach((menu) => {
-    closeAccountMenu(menu);
-  });
+  document
+    .querySelectorAll(".auth-mount .auth-menu:not([hidden])")
+    .forEach((menu) => {
+      closeAccountMenu(menu);
+    });
 });
 function escapeText(value) {
   return String(value).replace(
@@ -320,13 +387,21 @@ function openAuth() {
 function setAuthMode(createAccount) {
   creatingAccount = createAccount;
   nameRow.hidden = !createAccount;
-  form.elements.password.autocomplete = createAccount ? "new-password" : "current-password";
-  form.querySelector(".auth-submit").textContent = createAccount ? "Create account" : "Sign in";
-  modeButton.textContent = createAccount ? "Already have an account? Sign in" : "New here? Create an account";
+  form.elements.password.autocomplete = createAccount
+    ? "new-password"
+    : "current-password";
+  form.querySelector(".auth-submit").textContent = createAccount
+    ? "Create account"
+    : "Sign in";
+  modeButton.textContent = createAccount
+    ? "Already have an account? Sign in"
+    : "New here? Create an account";
   modal.querySelector(".auth-reset").hidden = createAccount;
   modal.querySelector("#authTitle").textContent = createAccount
     ? "Create your account"
-      : authPage ? "Welcome back" : "Sign in to Learning Studio";
+    : authPage
+      ? "Welcome back"
+      : "Sign in to Learning Studio";
   modal.querySelector(".auth-intro").textContent = createAccount
     ? "Create an account to save course progress and lab work across your devices."
     : "Sign in to keep course progress and lab work across your devices.";
@@ -336,18 +411,36 @@ function setAuthMode(createAccount) {
         description:
           "Explore a course, try what you learn, and keep your progress in one place.",
         points: [
-          ["Choose a course", "Start with GraphQL or Docker, at a pace that works for you."],
-          ["Practice as you learn", "Try real queries and commands in guided labs."],
-          ["Keep your progress", "Your courses and lab work stay together across devices."],
+          [
+            "Choose a course",
+            "Start with GraphQL or Docker, at a pace that works for you.",
+          ],
+          [
+            "Practice as you learn",
+            "Try real queries and commands in guided labs.",
+          ],
+          [
+            "Keep your progress",
+            "Your courses and lab work stay together across devices.",
+          ],
         ],
       }
     : {
         description:
           "Your courses, lab work, and progress stay together wherever you learn.",
         points: [
-          ["Your progress stays in sync", "Chapters and practice are ready when you return."],
-          ["Try ideas in guided labs", "Explore GraphQL and Docker in a safe workspace."],
-          ["Your learning stays private", "Your saved course progress belongs to your account."],
+          [
+            "Your progress stays in sync",
+            "Chapters and practice are ready when you return.",
+          ],
+          [
+            "Try ideas in guided labs",
+            "Explore GraphQL and Docker in a safe workspace.",
+          ],
+          [
+            "Your learning stays private",
+            "Your saved course progress belongs to your account.",
+          ],
         ],
       };
 
@@ -407,11 +500,17 @@ async function syncProgress() {
     return;
   }
   syncing = true;
-  const dirtyAtStart = new Map(dirtyKeys);
+  let failed = false;
   try {
     const ref = progressRef(currentUser.uid);
     const snapshot = await getDoc(ref);
-    const cloud = snapshot.exists() ? snapshot.data().values || {} : {};
+    const cloud = snapshot.exists()
+      ? decodeFirestoreValue(snapshot.data().values || {})
+      : {};
+    // Capture local edits after the Firestore read. A learner can interact
+    // while getDoc is pending; treating those edits as clean would let this
+    // older cloud snapshot overwrite their current lab state.
+    const dirtyAtStart = new Map(dirtyKeys);
     const local = collectProgress();
     const merged = mergeProgress(local, cloud, new Set(dirtyAtStart.keys()));
     for (const key of trackedKeys) {
@@ -424,16 +523,19 @@ async function syncProgress() {
     }
     await setDoc(
       ref,
-      { values: merged, updatedAt: serverTimestamp() },
+      { values: encodeFirestoreValue(merged), updatedAt: serverTimestamp() },
       { merge: true },
     );
     for (const [key, version] of dirtyAtStart) {
       if (dirtyKeys.get(key) === version) dirtyKeys.delete(key);
     }
+    syncFailureCount = 0;
     window.dispatchEvent(
       new CustomEvent("learning:sync-status", { detail: { status: "saved" } }),
     );
   } catch (error) {
+    failed = true;
+    syncFailureCount += 1;
     console.error("Learning progress sync failed", error);
     window.dispatchEvent(
       new CustomEvent("learning:sync-status", {
@@ -442,14 +544,21 @@ async function syncProgress() {
     );
   } finally {
     syncing = false;
-    if (pendingSync || dirtyKeys.size) {
-      pendingSync = false;
-      queueSave();
+    const changedDuringSync = pendingSync;
+    pendingSync = false;
+    if (changedDuringSync) {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncProgress, 500);
+    } else if (failed && syncFailureCount < 5) {
+      const retryDelay = Math.min(30_000, 500 * 2 ** syncFailureCount);
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncProgress, retryDelay);
     }
   }
 }
 function queueSave() {
   if (!currentUser) return;
+  syncFailureCount = 0;
   window.dispatchEvent(
     new CustomEvent("learning:sync-status", { detail: { status: "saving" } }),
   );
@@ -459,7 +568,9 @@ function queueSave() {
 
 if (!configPayload.configured || !config?.apiKey) {
   // Graceful fallback: Firebase not configured (common on Render free tier)
-  console.warn("[firebase] No valid config — running in local-only mode (no cloud sync or auth).");
+  console.warn(
+    "[firebase] No valid config — running in local-only mode (no cloud sync or auth).",
+  );
   window.__learningFirebaseReady = false;
   updateAccountButton();
 
@@ -467,8 +578,10 @@ if (!configPayload.configured || !config?.apiKey) {
     // On auth page, show a non-blocking notice instead of disabling everything
     const notice = document.createElement("div");
     notice.className = "auth-notice";
-    notice.style.cssText = "margin:12px 0;padding:10px 14px;border-radius:8px;background:#fff3cd;color:#664d03;font-size:0.9em;";
-    notice.textContent = "Cloud sync is disabled (Firebase not configured). Progress is saved locally only.";
+    notice.style.cssText =
+      "margin:12px 0;padding:10px 14px;border-radius:8px;background:#fff3cd;color:#664d03;font-size:0.9em;";
+    notice.textContent =
+      "Cloud sync is disabled (Firebase not configured). Progress is saved locally only.";
     form?.parentNode?.insertBefore(notice, form);
   } else if (mount) {
     // On other pages, silently hide the auth button
@@ -492,7 +605,10 @@ if (!configPayload.configured || !config?.apiKey) {
       } catch (error) {
         console.error("[firebase] Secure session sync failed:", error);
         if (authPage && new URLSearchParams(location.search).has("next")) {
-          showMessage("Could not verify your secure course session. Please try again.", "error");
+          showMessage(
+            "Could not verify your secure course session. Please try again.",
+            "error",
+          );
           return;
         }
       }
@@ -518,12 +634,17 @@ if (!configPayload.configured || !config?.apiKey) {
       const requestedDestination = authPage
         ? new URLSearchParams(location.search).get("next")
         : sessionStorage.getItem("learning-course-after-auth");
-      const destination = requestedDestination?.startsWith("/courses/") && !requestedDestination.startsWith("//")
-        ? requestedDestination
-        : authPage ? "/" : null;
+      const destination =
+        requestedDestination?.startsWith("/courses/") &&
+        !requestedDestination.startsWith("//")
+          ? requestedDestination
+          : authPage
+            ? "/"
+            : null;
       if (destination) {
         sessionStorage.removeItem("learning-course-after-auth");
-        if (destination !== location.pathname + location.search) window.location.assign(destination);
+        if (destination !== location.pathname + location.search)
+          window.location.assign(destination);
       }
     } else {
       await syncServerSession(null);
@@ -548,7 +669,10 @@ if (!configPayload.configured || !config?.apiKey) {
     const password = String(data.get("password"));
     const submit = form.querySelector(".auth-submit");
     submit.disabled = true;
-    showMessage(creatingAccount ? "Creating your account…" : "Signing in…", "loading");
+    showMessage(
+      creatingAccount ? "Creating your account…" : "Signing in…",
+      "loading",
+    );
     try {
       if (creatingAccount) {
         const result = await createUserWithEmailAndPassword(
@@ -606,19 +730,21 @@ if (!configPayload.configured || !config?.apiKey) {
   }
 
   if (!authPage && homePage) {
-    document.querySelectorAll('a[href^="/auth/"][href*="next="]').forEach((link) => {
-      link.addEventListener("click", async (event) => {
-        event.preventDefault();
-        const url = new URL(link.href, location.href);
-        const destination = url.searchParams.get("next");
-        await authReady;
-        location.assign(
-          currentUser && destination?.startsWith("/courses/")
-            ? destination
-            : link.href,
-        );
+    document
+      .querySelectorAll('a[href^="/auth/"][href*="next="]')
+      .forEach((link) => {
+        link.addEventListener("click", async (event) => {
+          event.preventDefault();
+          const url = new URL(link.href, location.href);
+          const destination = url.searchParams.get("next");
+          await authReady;
+          location.assign(
+            currentUser && destination?.startsWith("/courses/")
+              ? destination
+              : link.href,
+          );
+        });
       });
-    });
   }
 }
 

@@ -2,7 +2,6 @@ import { graphql } from "graphql";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import schemaModule from "../../server/schema";
-import data from "../../server/data";
 import resolversModule from "../../server/resolvers";
 import { verifyFirebaseIdToken } from "../../lib/firebase-session";
 import { SESSION_COOKIE } from "../../lib/session-cookie";
@@ -32,7 +31,7 @@ export async function POST(request: Request) {
     const durationMs = Number((performance.now() - startedAt).toFixed(2));
     return NextResponse.json({
       ...result,
-      extensions: { durationMs, trace, state: data.getSnapshot() },
+      extensions: { durationMs, trace },
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Invalid GraphQL request.";

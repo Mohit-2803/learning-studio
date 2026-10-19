@@ -483,15 +483,14 @@ lessons.splice(
   {
     title: "Filter, sort, and shape lists",
     kicker: "LESSON 09 · FILTERING + PAGINATION",
-    time: "4 min read",
-    body: "Collection fields can accept arguments that filter, sort, and limit results. Aliases let you request the same field more than once with different arguments and give each result a clear response key.",
-    extra:
-      "Try changing the genre, sortBy value, or limit. The schema accepts genre, read, minRating, limit, and sortBy. Keep result sets small when a screen only needs a few records.",
+    time: "7 min read",
+    body: "A collection field such as books can return many records. Filtering means keeping only books that match criteria: genre narrows by category, read selects read or unread books, and minRating sets a rating threshold. If you provide more than one filter, this resolver applies them together, so a book must meet every supplied condition. Sorting changes the order of matching books without removing any. Here, sortBy can order by title (A to Z), year (newest first), rating (highest first), or pages (longest first).",
+    extra: "limit keeps only the first N records after filtering and sorting. It is useful for a small preview, but it is not a page number; a growing production collection should use pagination to fetch later results. Shaping means choosing which fields to include for each book, such as title and rating. An alias gives each call to the same books field its own response key, so one operation can ask for two differently filtered lists and compare them.",
     query: `query BrowseLibrary {\n  topFantasy: books(genre: "Fantasy", sortBy: "rating", limit: 2) { title rating }\n  unread: books(read: false, limit: 3) { title read }\n}`,
     variables: "",
-    explainTitle: "Arguments shape the list",
+    explainTitle: "Filter results, order them, and choose fields",
     explain:
-      "Aliases label two calls to books with different arguments in the same response.",
+      "You understand this lesson when you can explain what each filter keeps, predict how changing sortBy reorders the matches, describe how limit truncates that ordered list, and identify the two alias keys in data.",
   },
   {
     title: "Reuse selections with fragments",
@@ -525,13 +524,13 @@ chapterDetails.splice(
   0,
   {
     lead: "Arguments let a collection field filter and order its results. Aliases let one operation request the same field with different inputs.",
-    why: "Run the example and compare the two response keys. Change sortBy to title or year and observe how the list changes.",
+    why: "This request runs books twice: first it keeps Fantasy books, sorts them by rating, and takes two; then it returns up to three unread books. The aliases topFantasy and unread give those two results distinct names in one JSON response.",
     query: `query BrowseLibrary {\n  topFantasy: books(genre: "Fantasy", sortBy: "rating", limit: 2) { title rating }\n  unread: books(read: false, limit: 3) { title read }\n}`,
     client: `const result = await request({ query: "{ topFantasy: books(genre: \\\"Fantasy\\\", limit: 2) { title rating } }" });\nconsole.log(result.data.topFantasy);`,
     resolver: `books: ({ genre, read, minRating, limit, sortBy }) => {\n  let results = filterBooks({ genre, read, minRating });\n  results = sortBooks(results, sortBy);\n  return results.slice(0, limit);\n}`,
     backend:
-      "The schema declares optional arguments, and the root resolver applies requested filters before GraphQL resolves fields for each book.",
-    data: "Use limit for small screens. This sample uses offset-style limiting rather than cursor pagination; cursors are often better when lists change frequently or grow large.",
+      "The schema declares optional arguments, and the root resolver applies filters first, sorts the remaining records, and then slices the list to the requested limit. GraphQL validates the argument names and types; the resolver defines what each argument means.",
+    data: "A list response is the selected fields for each matching book. Aliases change the response key, not the underlying field: topFantasy and unread are labels chosen by this operation. This demo's limit is a simple first-N slice; use cursor pagination for a large or frequently changing collection.",
   },
   {
     lead: "Fragments name a reusable set of fields on a GraphQL type. Spreading the fragment into a selection set keeps repeated object shapes consistent.",
@@ -559,14 +558,15 @@ chapterBreakdowns.splice(
   0,
   {
     steps: [
-      ["genre / read", "Filter collection results with field arguments."],
-      ["sortBy + limit", "Choose an order and keep only a small result set."],
+      ["genre / read / minRating", "Filter means keep only records that meet the supplied criteria. This resolver combines the supplied filters."],
+      ["sortBy", "Sort changes the order of the matching list: rating is highest first, year is newest first, and title is alphabetical."],
+      ["limit", "Limit takes the first N records after filtering and sorting; it does not mean page number."],
       [
         "topFantasy / unread",
-        "Aliases label two calls to books in one response.",
+        "Aliases let one operation call books twice and store each list under a different response key.",
       ],
     ],
-    response: `{"data":{"topFantasy":[{"title":"Piranesi","rating":4.5}],"unread":[{"title":"Kindred","read":false}]}}`,
+    response: `{"data":{"topFantasy":[{"title":"The Hobbit","rating":4.8},{"title":"Piranesi","rating":4.5}],"unread":[{"title":"Kindred","read":false},{"title":"Piranesi","read":false},{"title":"Exhalation","read":false}]}}`,
   },
   {
     steps: [
@@ -910,19 +910,23 @@ const chapterTryouts = [
     ],
   },
   {
-    task: "Compare two filtered collections in one request.",
+    task: "Explore how filter arguments choose matching books, how sortBy and limit order a result, and how aliases let one operation compare two lists.",
     presets: [
       [
-        "Aliases",
-        `{ fantasy: books(genre:"Fantasy") { title }\n  unread: books(read:false) { title } }`,
+        "Filter by genre",
+        `{ books(genre:"Fantasy", minRating:4.5) { title genre rating } }`,
         "",
       ],
       [
-        "Rating filter",
-        `{ books(minRating:4.8, sortBy:"rating") { title rating } }`,
+        "Sort + limit",
+        `{ books(sortBy:"year", limit:3) { title year } }`,
         "",
       ],
-      ["Limit result", `{ books(sortBy:"year", limit:2) { title year } }`, ""],
+      [
+        "Compare with aliases",
+        `{ fantasy: books(genre:"Fantasy", sortBy:"rating", limit:2) { title rating }\n  unread: books(read:false, limit:3) { title read } }`,
+        "",
+      ],
     ],
   },
   {
@@ -1157,8 +1161,7 @@ function renderGraphQLStartHere() {
   </section>`;
 }
 function renderChapter(i) {
-  const d = chapterDetails[i],
-    chapter = String(i).padStart(2, "0");
+  const d = chapterDetails[i];
   const breakdown = chapterBreakdowns[i];
   const isFinal = i === lessons.length - 1;
   const labButton = isFinal
@@ -1184,35 +1187,73 @@ function renderChapter(i) {
           : isFinal
             ? "SIMPLIFIED RESOLVER FLOW"
             : "RESOLVER · SERVER.JS";
-  const insightHTML = `<div class="chapter-insights"><article class="insight-card"><div class="eyebrow">READ THE EXAMPLE</div><h3>What each part means</h3><ol>${breakdown.steps.map(([term, explanation]) => `<li><code>${escapeCodeHTML(term)}</code><span>${escapeCodeHTML(explanation)}</span></li>`).join("")}</ol></article><article class="insight-card"><div class="eyebrow">SAMPLE RESULT</div><h3>What the server sends back</h3><pre class="chapter-code json-code"><code>${highlightJSON(breakdown.response)}</code></pre><p class="response-explain">GraphQL returns selected fields under <code>data</code>. Validation problems appear under <code>errors</code>. This sample uses the library’s starting data; a live response may differ after a mutation.</p></article></div>`;
+  const insightHTML = `<section class="chapter-walkthrough" aria-label="Step-by-step example walkthrough"><div class="chapter-walkthrough-heading"><span class="eyebrow">FOLLOW THE REQUEST</span><h3>What each part does</h3><p>Read from top to bottom, then compare the request with the JSON result.</p></div><div class="chapter-walkthrough-grid"><article class="insight-card chapter-step-card"><ol>${breakdown.steps.map(([term, explanation], index) => `<li><span class="chapter-step-number" aria-hidden="true">${String(index + 1).padStart(2, "0")}</span><div><code>${escapeCodeHTML(term)}</code><span>${escapeCodeHTML(explanation)}</span></div></li>`).join("")}</ol></article><article class="insight-card chapter-result-card"><div class="eyebrow">SAMPLE RESULT</div><h3>What the server sends back</h3><pre class="chapter-code json-code"><code>${highlightJSON(breakdown.response)}</code></pre><p class="response-explain">GraphQL returns selected fields under <code>data</code>. Validation problems appear under <code>errors</code>. This sample uses the library’s starting data; a live response may differ after a mutation.</p></article></div></section>`;
+  const lesson = lessons[i];
   const tryout = isFinal ? "" : renderChapterTryout(i);
+  const objective = isFinal ? lesson.explain : chapterTryouts[i].task;
+  const teaching = `<section class="chapter-teaching" aria-labelledby="chapterTeachingTitle"><div class="chapter-objective"><span class="chapter-objective-icon" aria-hidden="true">◎</span><div><div class="eyebrow">YOUR LEARNING GOAL</div><h3 id="chapterTeachingTitle">${escapeCodeHTML(objective)}</h3><p><b>By the end, you should be able to:</b> ${escapeCodeHTML(lesson.explain)}</p></div></div><article class="chapter-concept-lesson"><div class="eyebrow">LEARN THE IDEA</div><h3>${escapeCodeHTML(lesson.explainTitle)}</h3><p>${escapeCodeHTML(lesson.body)}</p><p>${escapeCodeHTML(lesson.extra)}</p></article></section>`;
+  const chapterVisual = i === 9 ? renderListOperationsVisual() : "";
   const serverPanel = `<article class="chapter-panel"><div class="chapter-panel-title"><span class="chapter-icon server-icon">02</span><div><h3>What happens on the server?</h3><p>${d.backend}</p></div></div><div class="snippet-label"><span>${backendLabel}</span><span>BACKEND</span></div><pre class="chapter-code"><code>${backendCode}</code></pre></article>`;
   const clientPanel = `<div class="client-panel"><div class="client-copy"><div class="eyebrow">FROM THE APP</div><h3>How a client sends it</h3><p>A browser or mobile app sends the operation to the GraphQL endpoint over HTTP. It receives JSON, then uses the data to update the screen.</p><div class="client-note"><b>${isFinal ? "Use the complete lab" : "Use this chapter’s tryout"}</b><span>${isFinal ? "The final lab collects every example and challenge in one place." : "Experiment with only the concept taught in this chapter before moving forward."}</span></div><details class="client-helper"><summary>Show the fetch helper used by the examples</summary><pre class="chapter-code"><code>${highlightJavaScript(helperCode)}</code></pre></details></div><div class="client-snippet"><div class="snippet-label"><span>JAVASCRIPT CLIENT EXAMPLE</span><span>CODE</span></div><pre class="chapter-code"><code>${highlightJavaScript(d.client)}</code></pre></div></div>`;
   const dataPath = `<div class="data-path"><div class="eyebrow">HOW THE DATA GETS THERE</div><h3>GraphQL describes the request; resolvers fetch the values.</h3><p>${d.data}</p><div class="data-flow"><span>Query</span><b>→</b><span>Schema check</span><b>→</b><span>Resolver</span><b>→</b><span>Data source</span><b>→</b><span>JSON response</span></div></div>`;
-  const stage =
-    i === 0
-      ? "START HERE"
-      : i < 4
-        ? "FOUNDATIONS"
-        : i < 12
-        ? "APPLIED PRACTICE"
-        : isFinal
-          ? "FINAL INTEGRATION"
-          : "INTERVIEW & OPERATIONS";
   const startHere = i === 0 ? renderGraphQLStartHere() : "";
   const deepDiveOpen = i < 4 ? " open" : "";
-  return `<div class="chapter-banner"><div><div class="eyebrow">CHAPTER ${chapter} · ${stage} · LEARN BY EXAMPLE</div><p>${d.lead}</p></div><span class="chapter-mark">${chapter}</span></div>${startHere}<div class="chapter-grid chapter-grid-focused"><article class="chapter-panel"><div class="chapter-panel-title"><span class="chapter-icon">01</span><div><h3>Learning example</h3><p>${d.why}</p></div></div><div class="snippet-label"><span>GRAPHQL OPERATION</span><span>EXAMPLE</span></div><pre class="chapter-code gql-code"><code>${highlightGraphQL(d.query)}</code></pre><div class="chapter-action">${labButton}</div></article></div>${tryout}<details class="chapter-deep-dive"${deepDiveOpen}><summary><span>Explore behind the scenes</span><small>Server code · sample response · client request</small></summary><div class="chapter-deep-dive-content"><div class="chapter-grid">${serverPanel}</div>${insightHTML}${clientPanel}${dataPath}</div></details>`;
+  const faq = renderGraphQLChapterFaq(i, d, breakdown);
+  return `${startHere}${teaching}${chapterVisual}<div class="chapter-grid chapter-grid-focused"><article class="chapter-panel"><div class="chapter-panel-title"><span class="chapter-icon">01</span><div><h3>Worked example</h3><p>${d.why}</p></div></div><div class="snippet-label"><span>GRAPHQL OPERATION</span><span>EXAMPLE</span></div><pre class="chapter-code gql-code"><code>${highlightGraphQL(d.query)}</code></pre><div class="chapter-action">${labButton}</div></article></div>${insightHTML}${tryout}<details class="chapter-deep-dive"${deepDiveOpen}><summary><span>Explore behind the scenes</span><small>Server code · client request · data flow</small></summary><div class="chapter-deep-dive-content"><div class="chapter-grid">${serverPanel}</div>${clientPanel}${dataPath}</div></details>${faq}`;
+}
+
+function renderListOperationsVisual() {
+  const track = (name, subtitle, stages) => `<article class="chapter-visual-track"><div class="chapter-visual-track-title"><span>${name}</span><small>${subtitle}</small></div><div class="chapter-visual-flow">${stages.map(([label, value], index) => `${index ? '<span class="chapter-visual-arrow" aria-hidden="true">→</span>' : ""}<div class="chapter-visual-node"><small>${label}</small><b>${value}</b></div>`).join("")}</div></article>`;
+  return `<section class="chapter-visual-example" aria-labelledby="listVisualTitle"><div class="chapter-visual-heading"><span class="chapter-visual-icon" aria-hidden="true">▤</span><div><span class="eyebrow">A PICTURE OF THE CHANGE</span><h3 id="listVisualTitle">One collection, two useful views</h3><p>Each call starts from the books collection, applies its own arguments, then returns only the fields selected in the query.</p></div></div><div class="chapter-visual-source"><span class="chapter-visual-stack" aria-hidden="true"><i></i><i></i><i></i></span><span><b>books</b><small>the same six sample records</small></span><span class="chapter-visual-fork" aria-hidden="true">↙　↘</span></div><div class="chapter-visual-tracks">${track("topFantasy", "Alias · fantasy recommendations", [["FILTER", "genre = Fantasy"], ["SORT", "rating · high to low"], ["LIMIT", "2 books"], ["SELECT", "title + rating"]])}${track("unread", "Alias · books to read next", [["FILTER", "read = false"], ["SORT", "default order"], ["LIMIT", "3 books"], ["SELECT", "title + read"]])}</div><p class="chapter-visual-caption"><b>How to read this:</b> filters choose which books qualify, sorting orders those matches, limit truncates the ordered list, and the selection set shapes each returned book. The aliases become keys under <code>data</code>.</p></section>`;
+}
+
+function renderGraphQLChapterFaq(index, detail, breakdown) {
+  const sources = [
+    "https://graphql.org/learn/introduction/",
+    "https://graphql.org/learn/introduction/",
+    "https://graphql.org/learn/schema/",
+    "https://graphql.org/learn/queries/",
+    "https://graphql.org/learn/queries/",
+    "https://graphql.org/learn/queries/",
+    "https://graphql.org/learn/queries/",
+    "https://graphql.org/learn/mutations/",
+    "https://graphql.org/learn/serving-over-http/",
+    "https://graphql.org/learn/best-practices/",
+    "https://graphql.org/learn/queries/",
+    "https://graphql.org/learn/mutations/",
+    "https://graphql.org/learn/pagination/",
+    "https://graphql.org/learn/execution/",
+    "https://graphql.org/learn/authorization/",
+    "https://graphql.org/learn/performance/",
+    "https://graphql.org/learn/security/",
+    "https://graphql.org/learn/subscriptions/",
+    "https://graphql.org/learn/schema/",
+    "https://graphql.org/learn/best-practices/",
+  ];
+  const source = sources[index] || "https://graphql.org/learn/";
+  const lesson = lessons[index];
+  const path = breakdown.steps.map(([term, explanation]) => `${term}: ${explanation}`).join(" ");
+  const response = JSON.stringify(JSON.parse(breakdown.response), null, 2);
+  const entries = [
+    [`What problem does “${lesson.title}” solve?`, `${lesson.body} In this chapter’s example, ${detail.why} The value of GraphQL here is the explicit contract between the operation a client sends and the shape the server can return; it is not a shortcut around application or data-layer design.`],
+    [`Where does the data or behavior for this operation come from?`, `${detail.backend} ${detail.data} The schema describes the field and its type, while resolver or service code decides how to obtain or change the value. GraphQL can sit in front of a database, several services, or simple in-memory teaching data.`],
+    [`What should I look for in the response?`, `The result should follow the requested fields and nesting. In this example, the important parts are ${path} A representative response is: ${response} In a real client, handle nullable values and errors instead of assuming every selected field always has a value.`],
+    [`What is a likely mistake, and how do I diagnose it?`, `${detail.lead} Start by checking the operation against the schema: field names, argument names, variable types, and required selections. If validation succeeds but a resolver fails, inspect the error and its path; that points to execution rather than a misspelled schema field.`],
+    [`How would I apply or explain this in a project?`, `${detail.data} A useful explanation names the client operation, the schema contract, the resolver or business rule, and the returned data. Then describe one trade-off from this chapter and how you would verify the behavior with a second request or a changed input.`],
+  ];
+  return `<section class="course-chapter-faq graphql-chapter-faq" aria-labelledby="graphqlFaqTitle"><div class="course-faq-heading"><span>COMMON QUESTIONS</span><h2 id="graphqlFaqTitle">Questions learners ask about this chapter</h2><p>Five practical answers, tied to this example and the official GraphQL documentation.</p></div>${entries.map(([question, answer]) => `<details class="course-faq-item"><summary>${escapeCodeHTML(question)}</summary><div class="course-faq-answer"><p>${escapeCodeHTML(answer)}</p><a href="${source}" target="_blank" rel="noreferrer">Official GraphQL docs for ${escapeCodeHTML(lesson.title)} ↗</a></div></details>`).join("")}</section>`;
 }
 
 function renderChapterTryout(i) {
   const tryout = chapterTryouts[i];
+  const lesson = lessons[i];
   const presetButtons = tryout.presets
     .map(
       ([label], index) =>
         `<button class="tryout-preset ${index === 0 ? "active" : ""}" data-preset="${index}">${escapeCodeHTML(label)}</button>`,
     )
     .join("");
-  return `<section class="chapter-tryout" id="chapterTryout"><div class="tryout-head"><div><div class="eyebrow">CHAPTER ${String(i).padStart(2, "0")} · TRY IT YOURSELF</div><h2>Change it. Run it. Read the result.</h2><p>${escapeCodeHTML(tryout.task)} You can freely edit the operation before running it.</p></div><span class="tryout-status" id="chapterTryoutStatus">READY</span></div><div class="tryout-presets">${presetButtons}</div><div class="tryout-grid"><div class="tryout-editor"><label for="chapterQuery">GRAPHQL OPERATION</label><textarea id="chapterQuery" spellcheck="false">${escapeCodeHTML(tryout.presets[0][1])}</textarea><label for="chapterVariables">VARIABLES · JSON</label><textarea id="chapterVariables" class="tryout-vars" spellcheck="false">${escapeCodeHTML(tryout.presets[0][2])}</textarea><button id="runChapterTryout" class="run-btn">Run experiment <span>▶</span></button></div><div class="tryout-result"><div class="tryout-result-head"><span>LIVE RESPONSE</span><span id="chapterTryoutMeta">Waiting for your request</span></div><pre id="chapterTryoutOutput"><span class="tryout-empty">Your result and errors will appear here.</span></pre><div id="chapterTryoutCoach" class="tryout-coach"><b>Experiment freely</b><p>Errors are useful here. Read the message, edit the operation, and run it again.</p></div></div></div></section>`;
+  return `<section class="chapter-tryout" id="chapterTryout"><div class="tryout-head"><div><div class="eyebrow">CHAPTER ${String(i).padStart(2, "0")} · GUIDED PRACTICE</div><h2>Change it. Run it. Read the result.</h2><p>${escapeCodeHTML(tryout.task)} Choose a starting example, run it, then change one input or field and run it again.</p></div><span class="tryout-status" id="chapterTryoutStatus">READY</span></div><div class="tryout-success"><span class="tryout-success-mark" aria-hidden="true">✓</span><p><b>Check your understanding</b><span>${escapeCodeHTML(lesson.explain)}</span></p></div><div class="tryout-presets" aria-label="Practice starting points">${presetButtons}</div><div class="tryout-grid"><div class="tryout-editor"><label for="chapterQuery">GRAPHQL OPERATION</label><textarea id="chapterQuery" spellcheck="false">${escapeCodeHTML(tryout.presets[0][1])}</textarea><label for="chapterVariables">VARIABLES · JSON</label><textarea id="chapterVariables" class="tryout-vars" spellcheck="false">${escapeCodeHTML(tryout.presets[0][2])}</textarea><button id="runChapterTryout" class="run-btn">Run experiment <span>▶</span></button></div><div class="tryout-result"><div class="tryout-result-head"><span>LIVE RESPONSE</span><span id="chapterTryoutMeta">Waiting for your request</span></div><pre id="chapterTryoutOutput"><span class="tryout-empty">Your result and errors will appear here.</span></pre><div id="chapterTryoutCoach" class="tryout-coach"><b>Experiment freely</b><p>Errors are useful here. Read the message, edit the operation, and run it again.</p></div></div></div></section>`;
 }
 function selectLesson(i) {
   active = i;
@@ -1249,10 +1290,11 @@ function selectLesson(i) {
   stageGroups.forEach((group, index) => {
     group.open = i >= lessonStages[index].start && i < lessonStages[index].end;
   });
+  const lessonTopic = l.kicker
+    .replace(/^ADVANCED LESSON\s*·\s*/, "")
+    .replace(/^LESSON\s+\d+\s*·\s*/, "");
   document.querySelector("#lessonKicker").textContent =
-    `${l.kicker.startsWith("ADVANCED LESSON ·")
-      ? l.kicker.replace("ADVANCED LESSON ·", `CHAPTER ${String(i).padStart(2, "0")} ·`)
-      : l.kicker.replace(/^LESSON /, "CHAPTER ")} · ${journeyLevel}`;
+    `CHAPTER ${String(i).padStart(2, "0")} · ${lessonTopic} · ${journeyLevel}`;
   document.querySelector("#lessonTitle").textContent = l.title;
   document.querySelector("#lessonTime").textContent = l.time;
   document.querySelector("#lessonBody").textContent = l.body;
@@ -2052,12 +2094,16 @@ async function runQuery() {
     renderRequestPipeline("complete", result);
     window.lastGraphQLResult = result;
     window.lastRunPracticeIndex = window.activePracticeIndex ?? null;
-    out.innerHTML = highlightJSON(JSON.stringify(result, null, 2));
+    const responsePayload = {
+      ...(result.data !== undefined ? { data: result.data } : {}),
+      ...(result.errors?.length ? { errors: result.errors } : {}),
+    };
+    out.innerHTML = highlightJSON(JSON.stringify(responsePayload, null, 2));
     renderResolverTrace(
       result.extensions?.trace || [],
       result.extensions?.durationMs,
     );
-    if (result.extensions?.state) renderLibraryState(result.extensions.state);
+    await refreshLibraryState();
     if (window.activePracticeIndex != null) {
       const activeCard = practiceList.children[window.activePracticeIndex];
       const feedback = activeCard?.querySelector(".check-result");

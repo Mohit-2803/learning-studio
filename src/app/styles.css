@@ -4030,6 +4030,22 @@ body {
   padding: 0;
   border: 0;
 }
+.terminal-system-notice {
+  margin: 8px 0;
+  padding: 5px 8px;
+  border-left: 2px solid #62b8c8;
+  background: rgba(96, 184, 200, 0.08);
+  color: #8db9c3;
+  font: 9px/1.6 var(--mono);
+}
+.terminal-system-notice.online {
+  border-left-color: #26c49a;
+  color: #8bd8bf;
+}
+.terminal-system-notice.offline {
+  border-left-color: #ff705f;
+  color: #f1a092;
+}
 .terminal-command {
   display: flex;
   gap: 8px;
@@ -6221,6 +6237,372 @@ body kbd {
   color: #fff;
 }
 
+/* GraphQL lessons use one readable type scale and a visible explain → show → try flow. */
+.graphql-page .chapter-teaching {
+  display: grid;
+  gap: 14px;
+  margin: 14px 0;
+}
+.graphql-page .chapter-objective,
+.graphql-page .chapter-concept-lesson {
+  border: 1px solid #e9e4f0;
+  border-radius: 12px;
+  background: #fff;
+  padding: 20px 22px;
+}
+.graphql-page .chapter-objective {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  border-color: #f0cce2;
+  background: linear-gradient(115deg, #fff5fb, #fff 78%);
+}
+.graphql-page .chapter-objective-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid #f5c9e1;
+  border-radius: 13px;
+  background: #fff;
+  color: #c40083;
+  font: 24px/1 "DM Sans", sans-serif;
+}
+.graphql-page .chapter-objective h3,
+.graphql-page .chapter-concept-lesson h3,
+.graphql-page .chapter-walkthrough-heading h3 {
+  margin: 6px 0 8px;
+  color: #20202b;
+  font: 700 19px/1.4 Manrope, sans-serif;
+  letter-spacing: -0.25px;
+}
+.graphql-page .chapter-objective p,
+.graphql-page .chapter-concept-lesson p,
+.graphql-page .chapter-walkthrough-heading p {
+  margin: 0;
+  color: #626273;
+  font: 400 15px/1.8 "DM Sans", sans-serif;
+}
+.graphql-page .chapter-objective p + p,
+.graphql-page .chapter-concept-lesson p + p {
+  margin-top: 10px;
+}
+.graphql-page .chapter-objective p b {
+  color: #343443;
+}
+.graphql-page .chapter-concept-lesson {
+  border-left: 4px solid #e10098;
+  padding-left: 20px;
+}
+.graphql-page .chapter-walkthrough {
+  margin-top: 14px;
+  padding: 21px;
+  border: 1px solid #e8e3f0;
+  border-radius: 12px;
+  background: #faf9fc;
+}
+.graphql-page .chapter-walkthrough-heading {
+  margin-bottom: 14px;
+}
+.graphql-page .chapter-walkthrough-heading h3 {
+  margin-bottom: 3px;
+}
+.graphql-page .chapter-walkthrough-heading p {
+  font-size: 14px;
+}
+.graphql-page .chapter-walkthrough-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 13px;
+}
+.graphql-page .chapter-step-card,
+.graphql-page .chapter-result-card {
+  min-width: 0;
+  border-color: #e8e3f0;
+  border-radius: 10px;
+  background: #fff;
+  padding: 17px;
+}
+.graphql-page .chapter-step-card ol {
+  gap: 0;
+  padding: 0;
+  list-style: none;
+}
+.graphql-page .chapter-step-card li {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 11px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0edf3;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.graphql-page .chapter-step-card li:first-child {
+  padding-top: 0;
+}
+.graphql-page .chapter-step-card li:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.graphql-page .chapter-step-number {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff0f8;
+  color: #b40079;
+  font: 10px "DM Mono", monospace;
+}
+.graphql-page .chapter-step-card li code {
+  color: #4a315f;
+  background: #f8f3fa;
+  font: 600 12px/1.6 "DM Mono", monospace;
+}
+.graphql-page .chapter-step-card li span:last-child {
+  color: #656575;
+}
+.graphql-page .chapter-result-card h3 {
+  margin: 6px 0 11px;
+  font: 700 16px/1.45 Manrope, sans-serif;
+}
+.graphql-page .chapter-result-card .json-code {
+  max-height: 320px;
+}
+.graphql-page .tryout-success {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  margin: 14px 0 2px;
+  padding: 12px 14px;
+  border: 1px solid #f1d7e7;
+  border-radius: 9px;
+  background: #fff;
+}
+.graphql-page .tryout-success-mark {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff0f8;
+  color: #bb007d;
+  font: 700 13px "DM Sans", sans-serif;
+}
+.graphql-page .tryout-success p {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  color: #646374;
+  font: 400 13px/1.7 "DM Sans", sans-serif;
+}
+.graphql-page .tryout-success p b {
+  color: #343443;
+}
+.graphql-page .chapter-objective .eyebrow,
+.graphql-page .chapter-concept-lesson .eyebrow,
+.graphql-page .chapter-walkthrough .eyebrow {
+  color: #b40079;
+  font-size: 10px;
+}
+.graphql-page .chapter-visual-example {
+  margin-top: 14px;
+  padding: 21px;
+  border: 1px solid #eadff0;
+  border-radius: 12px;
+  background: radial-gradient(ellipse at 94% 5%, #fbe9f5 0, transparent 35%), #fff;
+}
+.graphql-page .chapter-visual-heading {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+}
+.graphql-page .chapter-visual-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border: 1px solid #f1d3e5;
+  border-radius: 14px 14px 14px 5px;
+  background: #fff3fa;
+  color: #c40083;
+  font-size: 21px;
+}
+.graphql-page .chapter-visual-heading h3 {
+  margin: 5px 0 4px;
+  font: 700 18px/1.4 Manrope, sans-serif;
+}
+.graphql-page .chapter-visual-heading p,
+.graphql-page .chapter-visual-caption {
+  max-width: 780px;
+  margin: 0;
+  color: #676777;
+  font: 400 14px/1.75 "DM Sans", sans-serif;
+}
+.graphql-page .chapter-visual-source {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 10px;
+  margin: 18px auto 4px;
+  padding: 9px 15px;
+  border: 1px solid #e4dced;
+  border-radius: 10px;
+  background: #fcfaff;
+}
+.graphql-page .chapter-visual-source > span:nth-child(2) {
+  display: grid;
+  gap: 2px;
+}
+.graphql-page .chapter-visual-source b {
+  color: #3e3651;
+  font: 700 13px "DM Mono", monospace;
+}
+.graphql-page .chapter-visual-source small,
+.graphql-page .chapter-visual-track-title small {
+  color: #828090;
+  font: 11px "DM Sans", sans-serif;
+}
+.graphql-page .chapter-visual-stack {
+  display: grid;
+  width: 27px;
+  gap: 3px;
+}
+.graphql-page .chapter-visual-stack i {
+  display: block;
+  height: 6px;
+  border: 1px solid #d9c6e5;
+  border-radius: 3px;
+  background: #f4eaf7;
+}
+.graphql-page .chapter-visual-stack i:nth-child(2) {
+  width: 21px;
+  margin-left: 3px;
+  background: #faeaf4;
+}
+.graphql-page .chapter-visual-stack i:nth-child(3) {
+  width: 15px;
+  margin-left: 6px;
+}
+.graphql-page .chapter-visual-fork {
+  margin-left: 3px;
+  color: #c40083;
+  font-size: 18px;
+}
+.graphql-page .chapter-visual-tracks {
+  display: grid;
+  gap: 10px;
+  margin-top: 9px;
+}
+.graphql-page .chapter-visual-track {
+  padding: 12px;
+  border: 1px solid #eee7f1;
+  border-radius: 10px;
+  background: #fff;
+}
+.graphql-page .chapter-visual-track-title {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin-bottom: 10px;
+}
+.graphql-page .chapter-visual-track-title > span {
+  color: #a90070;
+  font: 700 12px "DM Mono", monospace;
+}
+.graphql-page .chapter-visual-flow {
+  display: flex;
+  align-items: stretch;
+  gap: 7px;
+}
+.graphql-page .chapter-visual-node {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 0;
+  align-content: center;
+  gap: 5px;
+  padding: 10px;
+  border: 1px solid #eadfea;
+  border-radius: 9px;
+  background: linear-gradient(150deg, #fff, #fcf8fc);
+}
+.graphql-page .chapter-visual-node:nth-of-type(3n + 1) {
+  border-top: 3px solid #e5a4d0;
+}
+.graphql-page .chapter-visual-node small {
+  color: #a09aa9;
+  font: 9px "DM Mono", monospace;
+  letter-spacing: .5px;
+}
+.graphql-page .chapter-visual-node b {
+  color: #4f4a5e;
+  font: 600 12px/1.45 "DM Sans", sans-serif;
+}
+.graphql-page .chapter-visual-arrow {
+  display: grid;
+  flex: 0 0 14px;
+  place-items: center;
+  color: #c40083;
+}
+.graphql-page .chapter-visual-caption {
+  margin-top: 14px;
+  padding: 11px 13px;
+  border-radius: 8px;
+  background: #fff3fa;
+}
+.graphql-page .chapter-visual-caption b {
+  color: #42384a;
+}
+.graphql-page .chapter-visual-caption code {
+  color: #a90070;
+  font: 600 12px "DM Mono", monospace;
+}
+@media (max-width: 760px) {
+  .graphql-page .chapter-walkthrough-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .graphql-page .chapter-objective,
+  .graphql-page .chapter-concept-lesson,
+  .graphql-page .chapter-walkthrough {
+    padding: 16px;
+  }
+  .graphql-page .chapter-objective {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 10px;
+  }
+  .graphql-page .chapter-objective-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+  }
+  .graphql-page .chapter-objective h3,
+  .graphql-page .chapter-concept-lesson h3,
+  .graphql-page .chapter-walkthrough-heading h3 {
+    font-size: 17px;
+  }
+  .graphql-page .chapter-objective p,
+  .graphql-page .chapter-concept-lesson p,
+  .graphql-page .chapter-step-card li {
+    font-size: 14px;
+  }
+  .graphql-page .chapter-visual-flow {
+    align-items: stretch;
+    overflow-x: auto;
+    padding-bottom: 3px;
+  }
+  .graphql-page .chapter-visual-node {
+    flex: 0 0 145px;
+  }
+  .graphql-page .chapter-visual-track-title {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+}
+
 .home-page header nav a {
   font-size: 15px;
   font-weight: 600;
@@ -6772,3 +7154,609 @@ body kbd {
     font-size: 13px;
   }
 }
+
+/* GraphQL course navigation: keep the complete lesson list readable and unclipped. */
+.graphql-page .mx-auto.grid {
+  grid-template-columns: 228px minmax(0, 1fr);
+}
+@media (min-width: 951px) {
+  .graphql-page .mx-auto.grid {
+    grid-template-columns: 284px minmax(0, 1fr);
+  }
+}
+.graphql-page aside {
+  min-width: 0;
+  padding: 28px 20px 20px;
+}
+.graphql-page aside > a {
+  margin-bottom: 18px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.graphql-page aside > h2 {
+  margin-top: 9px;
+  font-size: 18px;
+  line-height: 1.3;
+}
+.graphql-page aside > p {
+  font-size: 13px;
+  line-height: 1.55;
+}
+.graphql-page .course-position {
+  padding: 12px 13px;
+}
+.graphql-page .course-position > div:first-child {
+  align-items: center;
+  gap: 12px;
+}
+.graphql-page .course-position span {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.graphql-page .course-position span:first-child {
+  font-size: 11px;
+}
+.graphql-page .course-position span:last-child {
+  font-size: 11px;
+}
+.graphql-page #lessonNav {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 9px;
+  padding: 12px 4px 12px 0;
+  scrollbar-gutter: stable;
+}
+.graphql-page #lessonNav .lesson-stage {
+  display: block;
+  align-self: start;
+  height: max-content;
+  max-height: none;
+  min-width: 0;
+  min-height: 0;
+  overflow: visible;
+}
+.graphql-page #lessonNav .lesson-stage > summary {
+  min-height: 48px;
+  padding: 11px 36px 11px 13px;
+}
+.graphql-page #lessonNav .nav-item {
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 44px;
+  height: auto;
+  padding: 10px 10px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+.graphql-page #lessonNav .nav-item > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.graphql-page #lessonNav .nav-item.active {
+  font-weight: 500;
+}
+.graphql-page .side-tip {
+  gap: 12px;
+  padding: 15px 14px;
+}
+.graphql-page .side-tip b {
+  font-size: 12px;
+}
+.graphql-page .side-tip p {
+  font-size: 12px;
+  line-height: 1.55;
+}
+.graphql-page .side-footer {
+  font-size: 11px;
+  line-height: 1.4;
+}
+@media (max-width: 950px) and (min-width: 721px) {
+  .graphql-page aside {
+    padding-right: 16px;
+    padding-left: 18px;
+  }
+}
+@media (max-width: 720px) {
+  .graphql-page .mx-auto.grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .graphql-page aside {
+    padding: 16px 18px;
+  }
+  .graphql-page #lessonNav {
+    max-height: min(48vh, 390px);
+    min-height: 0;
+    padding: 8px 3px 10px 0;
+  }
+}
+/* Chapter FAQs are shared by the Docker and GraphQL learning paths. */
+.course-chapter-faq {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid #dce6e9;
+}
+.course-faq-heading {
+  margin-bottom: 2px;
+}
+.course-faq-heading > span {
+  color: #087da0;
+  font: 700 10px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 1px;
+}
+.course-faq-heading h2,
+.course-faq-heading h3 {
+  margin: 6px 0 4px;
+  color: #18252c;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.course-faq-heading p {
+  margin: 0;
+  color: #60747c;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.course-faq-item {
+  overflow: hidden;
+  border: 1px solid #dce6e9;
+  border-radius: 9px;
+  background: #fff;
+}
+.course-faq-item > summary {
+  position: relative;
+  padding: 13px 42px 13px 15px;
+  color: #21333b;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  list-style: none;
+}
+.course-faq-item > summary::-webkit-details-marker { display: none; }
+.course-faq-item > summary::after {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  color: #087da0;
+  content: "+";
+  font: 500 18px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  transform: translateY(-50%);
+}
+.course-faq-item[open] > summary {
+  border-bottom: 1px solid #e4ecef;
+  background: #f5fafb;
+}
+.course-faq-item[open] > summary::after { content: "−"; }
+.course-faq-answer { padding: 12px 15px 14px; }
+.course-faq-answer p {
+  margin: 0 0 9px;
+  color: #526970;
+  font-size: 14px;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+.course-faq-answer a {
+  color: #087da0;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.graphql-chapter-faq { margin: 28px 0 24px; }
+.graphql-chapter-faq .course-faq-heading > span,
+.graphql-chapter-faq .course-faq-item > summary::after,
+.graphql-chapter-faq .course-faq-answer a { color: #a50072; }
+@media (max-width: 720px) {
+  .course-faq-item > summary { padding: 12px 38px 12px 12px; font-size: 13px; }
+  .course-faq-answer { padding: 11px 12px 13px; }
+  .course-faq-answer p { font-size: 13px; }
+}
+
+/* PostgreSQL SQL course: readable editor, table results, and chapter navigation. */
+.postgres-page .postgres-progress {
+  display: block;
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  border-radius: 999px;
+  background: #d5e0e4;
+  accent-color: #336791;
+}
+.postgres-page .postgres-progress::-webkit-progress-bar {
+  background: #d5e0e4;
+  border-radius: 999px;
+}
+.postgres-page .postgres-progress::-webkit-progress-value {
+  background: linear-gradient(90deg, #2f6f8f, #336791);
+  border-radius: 999px;
+}
+.postgres-page .postgres-progress::-moz-progress-bar {
+  background: linear-gradient(90deg, #2f6f8f, #336791);
+  border-radius: 999px;
+}
+.postgres-page .postgres-nav,
+.postgres-page .postgres-scroll,
+.postgres-page .postgres-sandbox-scroll,
+.postgres-page .postgres-editor,
+.postgres-page .postgres-sql,
+.postgres-page .postgres-sql-input {
+  scrollbar-width: thin;
+  scrollbar-color: #466773 #10262e;
+}
+.postgres-page .postgres-nav::-webkit-scrollbar,
+.postgres-page .postgres-scroll::-webkit-scrollbar,
+.postgres-page .postgres-sandbox-scroll::-webkit-scrollbar,
+.postgres-page .postgres-editor::-webkit-scrollbar,
+.postgres-page .postgres-sql::-webkit-scrollbar,
+.postgres-page .postgres-sql-input::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.postgres-page .postgres-nav::-webkit-scrollbar-track,
+.postgres-page .postgres-scroll::-webkit-scrollbar-track,
+.postgres-page .postgres-sandbox-scroll::-webkit-scrollbar-track,
+.postgres-page .postgres-editor::-webkit-scrollbar-track,
+.postgres-page .postgres-sql::-webkit-scrollbar-track,
+.postgres-page .postgres-sql-input::-webkit-scrollbar-track {
+  margin: 8px 2px;
+  background: transparent;
+  border-radius: 999px;
+}
+.postgres-page .postgres-editor::-webkit-scrollbar-track,
+.postgres-page .postgres-sql::-webkit-scrollbar-track,
+.postgres-page .postgres-sql-input::-webkit-scrollbar-track {
+  background: #10262e;
+  margin: 4px 2px;
+}
+.postgres-page .postgres-nav::-webkit-scrollbar-thumb,
+.postgres-page .postgres-scroll::-webkit-scrollbar-thumb,
+.postgres-page .postgres-sandbox-scroll::-webkit-scrollbar-thumb,
+.postgres-page .postgres-editor::-webkit-scrollbar-thumb,
+.postgres-page .postgres-sql::-webkit-scrollbar-thumb,
+.postgres-page .postgres-sql-input::-webkit-scrollbar-thumb {
+  background-color: #466773;
+  background-clip: padding-box;
+  border: 1px solid transparent;
+  border-radius: 999px;
+}
+.postgres-page .postgres-nav::-webkit-scrollbar-thumb:hover,
+.postgres-page .postgres-scroll::-webkit-scrollbar-thumb:hover,
+.postgres-page .postgres-sandbox-scroll::-webkit-scrollbar-thumb:hover,
+.postgres-page .postgres-editor::-webkit-scrollbar-thumb:hover,
+.postgres-page .postgres-sql::-webkit-scrollbar-thumb:hover,
+.postgres-page .postgres-sql-input::-webkit-scrollbar-thumb:hover {
+  background-color: #5a8494;
+}
+.postgres-page .postgres-nav::-webkit-scrollbar-thumb:active,
+.postgres-page .postgres-scroll::-webkit-scrollbar-thumb:active,
+.postgres-page .postgres-sandbox-scroll::-webkit-scrollbar-thumb:active,
+.postgres-page .postgres-editor::-webkit-scrollbar-thumb:active,
+.postgres-page .postgres-sql::-webkit-scrollbar-thumb:active,
+.postgres-page .postgres-sql-input::-webkit-scrollbar-thumb:active {
+  background-color: #336791;
+}
+.postgres-page .postgres-nav::-webkit-scrollbar-button,
+.postgres-page .postgres-scroll::-webkit-scrollbar-button,
+.postgres-page .postgres-sandbox-scroll::-webkit-scrollbar-button,
+.postgres-page .postgres-editor::-webkit-scrollbar-button,
+.postgres-page .postgres-sql::-webkit-scrollbar-button,
+.postgres-page .postgres-sql-input::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.postgres-page .postgres-nav::-webkit-scrollbar-corner,
+.postgres-page .postgres-scroll::-webkit-scrollbar-corner,
+.postgres-page .postgres-sandbox-scroll::-webkit-scrollbar-corner,
+.postgres-page .postgres-editor::-webkit-scrollbar-corner,
+.postgres-page .postgres-sql::-webkit-scrollbar-corner,
+.postgres-page .postgres-sql-input::-webkit-scrollbar-corner {
+  background: transparent;
+}
+.postgres-page .postgres-nav-item { display: grid; width: 100%; grid-template-columns: 25px 1fr auto; gap: 7px; align-items: start; border: 0; border-radius: 8px; background: transparent; padding: 9px 8px; color: #42565e; text-align: left; font: 500 12px/1.45 "DM Sans", sans-serif; cursor: pointer; }
+.postgres-page .postgres-nav-item .postgres-nav-title {
+  color: inherit;
+  font-weight: 500;
+}
+.postgres-page .postgres-nav-item.active .postgres-nav-title {
+  color: #16333d;
+  font-weight: 500;
+}
+.postgres-page .postgres-nav-item b,
+.postgres-page .postgres-nav-item strong {
+  font-weight: 500;
+}
+.postgres-page .postgres-nav-item > span:first-child { color: #80939a; font: 11px/1.6 "DM Mono", monospace; }
+.postgres-page .postgres-nav-item:hover { background: #f2f8f9; }
+.postgres-page .postgres-nav-item.is-active,
+.postgres-page .postgres-nav-item.active { background: #e8f0f7; color: #15576a; }
+.postgres-page .postgres-nav-item.is-active > span:first-child,
+.postgres-page .postgres-nav-item.active > span:first-child { color: #336791; }
+.postgres-page .postgres-nav-item .postgres-nav-title {
+  color: #336791;
+  font-weight: 500;
+}
+.postgres-page .postgres-nav-item.is-active .postgres-nav-title,
+.postgres-page .postgres-nav-item.active .postgres-nav-title {
+  color: #16333d;
+  font-weight: 500;
+}
+.postgres-page .postgres-kicker { color: #336791; font: 500 10px/1.5 "DM Mono", monospace; letter-spacing: .1em; text-transform: none; }
+.postgres-page .postgres-hero-graphic { display: flex; align-items: center; gap: 8px; min-width: max-content; padding: 14px; border: 1px solid #e2ebed; border-radius: 14px; background: #f8fbfc; }
+.postgres-page .pg-table { display: grid; gap: 5px; border: 1px solid #cbdde1; border-radius: 9px; background: white; padding: 10px; font: 10px/1.4 "DM Mono", monospace; }
+.postgres-page .pg-table b { color: #215768; font-size: 11px; }
+.postgres-page .pg-table span { color: #70848b; }
+.postgres-page .postgres-hero-graphic i, .postgres-page .postgres-mini-diagram i { color: #0c91a5; font: normal 11px "DM Mono", monospace; }
+.postgres-page .postgres-code,
+.postgres-page .postgres-editor,
+.postgres-page .postgres-sql,
+.postgres-page .postgres-sql-highlight { font-family: "DM Mono", ui-monospace, monospace; tab-size: 2; }
+.postgres-page .postgres-sql-wrap {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 205px;
+  border: 1px solid #284852;
+  border-radius: 10px;
+  background: #10262e;
+  overflow: hidden;
+}
+.postgres-page .postgres-sql-wrap:focus-within {
+  border-color: #3db5c4;
+  box-shadow: 0 0 0 3px #3db5c433;
+}
+.postgres-page .postgres-editor,
+.postgres-page .postgres-sql {
+  display: block;
+  width: 100%;
+  min-height: 205px;
+  resize: vertical;
+  border: 1px solid #284852;
+  border-radius: 10px;
+  outline: none;
+  background: #10262e;
+  padding: 15px;
+  color: #d4f0f2;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.postgres-page .postgres-sql-input {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent !important;
+  color: transparent;
+  caret-color: #e8fbff;
+  box-shadow: none !important;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  overflow: auto;
+  -webkit-text-fill-color: transparent;
+}
+.postgres-page .postgres-sql-input::selection {
+  background: #33679188;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+.postgres-page .postgres-sql-highlight {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  margin: 0;
+  padding: 15px;
+  overflow: hidden;
+  pointer-events: none;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: normal;
+  color: #c5e4e8;
+  font-size: 13px;
+  line-height: 1.7;
+  tab-size: 2;
+}
+.postgres-page .postgres-sql-highlight .sql-tok-keyword {
+  color: #7ec8ff;
+  font-weight: 600;
+}
+.postgres-page .postgres-sql-highlight .sql-tok-type {
+  color: #5ad4c8;
+  font-weight: 600;
+}
+.postgres-page .postgres-sql-highlight .sql-tok-string {
+  color: #98d98a;
+}
+.postgres-page .postgres-sql-highlight .sql-tok-number {
+  color: #f0c674;
+}
+.postgres-page .postgres-sql-highlight .sql-tok-comment {
+  color: #6b8a94;
+  font-style: italic;
+}
+.postgres-page .postgres-sql-highlight .sql-tok-ident {
+  color: #d4f0f2;
+}
+.postgres-page .postgres-sql-highlight .sql-tok-punct {
+  color: #8fb4bd;
+}
+.postgres-page .postgres-editor:focus,
+.postgres-page .postgres-sql:focus { border-color: #3db5c4; box-shadow: 0 0 0 3px #3db5c433; }
+.postgres-page .postgres-run,
+.postgres-page .postgres-run-btn,
+.postgres-page .postgres-complete {
+  border: 0;
+  border-radius: 9px;
+  background: #336791;
+  padding: 10px 15px;
+  color: white;
+  font: 700 13px "DM Sans", sans-serif;
+  cursor: pointer;
+}
+.postgres-page .postgres-run:disabled,
+.postgres-page .postgres-run-btn:disabled,
+.postgres-page .postgres-complete:disabled { cursor: not-allowed; opacity: .55; }
+.postgres-page .postgres-reset,
+.postgres-page .postgres-secondary-btn,
+.postgres-page .postgres-chapter-control {
+  border: 1px solid #d8e3e6;
+  border-radius: 8px;
+  background: white;
+  padding: 8px 10px;
+  color: #4d656d;
+  font: 600 12px "DM Sans", sans-serif;
+  cursor: pointer;
+}
+.postgres-page .postgres-secondary-btn.on-dark {
+  border-color: #3a5f6a;
+  background: #14343e;
+  color: #d5eef0;
+}
+.postgres-page .postgres-reset:disabled,
+.postgres-page .postgres-secondary-btn:disabled,
+.postgres-page .postgres-chapter-control:disabled { cursor: not-allowed; opacity: .45; }
+.postgres-page .postgres-steps { list-style: none; padding: 0; }
+.postgres-page .postgres-steps li { display: flex; align-items: flex-start; gap: 10px; color: #526770; font-size: 13px; line-height: 1.55; }
+.postgres-page .postgres-steps li span { display: grid; width: 22px; height: 22px; flex: 0 0 22px; place-items: center; border-radius: 50%; background: #e8f0f7; color: #336791; font: 11px "DM Mono", monospace; }
+.postgres-page .postgres-result { overflow: hidden; border: 1px solid #284852; border-radius: 11px; background: #10262e; }
+.postgres-page .postgres-faq { border: 1px solid #dfe8ea; border-radius: 10px; background: #fbfdfd; padding: 12px 14px; }
+.postgres-page .postgres-faq summary { cursor: pointer; color: #29454f; font-size: 14px; font-weight: 700; }
+.postgres-page .postgres-faq p { margin: 10px 0 0; color: #5c7077; font-size: 14px; line-height: 1.7; }
+.postgres-page .postgres-mini-diagram { display: flex; align-items: center; justify-content: space-between; gap: 5px; margin: 18px 0; border: 1px solid #e2ebed; border-radius: 10px; background: #f8fbfc; padding: 12px 9px; }
+.postgres-page .postgres-mini-diagram span { color: #295764; font: 700 9px "DM Mono", monospace; }
+@media (max-width: 760px) {
+  .postgres-page .postgres-hero-graphic { width: 100%; justify-content: center; }
+  .postgres-page .postgres-nav { display: flex; max-height: 130px; gap: 10px; overflow-x: auto; }
+  .postgres-page .postgres-nav section { display: flex; min-width: max-content; gap: 4px; margin: 0; }
+  .postgres-page .postgres-nav section h3 { display: none; }
+  .postgres-page .postgres-nav-item { width: auto; max-width: 190px; grid-template-columns: 22px 1fr auto; border: 1px solid #e4e9ea; }
+}
+@media (max-width: 500px) {
+  .postgres-page .postgres-hero-graphic { min-width: 0; gap: 4px; padding: 8px; }
+  .postgres-page .pg-elephant-mark { width: 46px; height: 46px; }
+  .postgres-page .pg-mark-wrap { font-size: 6px; }
+  .postgres-page .pg-table { min-width: 0; padding: 6px; font-size: 8px; overflow-wrap: anywhere; }
+  .postgres-page .pg-table b { font-size: 9px; }
+  .postgres-page .postgres-hero-graphic i { font-size: 9px; }
+}
+.postgres-page .postgres-hero-graphic { border-color: #d6e3ed; background: linear-gradient(145deg, #f2f7fb, #fbfdff); }
+.postgres-page .pg-mark-wrap { display: grid; justify-items: center; gap: 3px; padding: 0 4px; color: #336791; font: 700 8px "DM Mono", monospace; letter-spacing: .08em; }
+.postgres-page .pg-elephant-mark { width: 66px; height: 66px; overflow: visible; }
+.postgres-page .postgres-params { display: block; width: min(100%, 320px); min-height: 42px; resize: vertical; border: 1px solid #d0dce5; border-radius: 8px; outline: none; background: #f5f9fc; padding: 10px; color: #294c69; font: 13px/1.5 "DM Mono", monospace; }
+.postgres-page .postgres-params:focus { border-color: #5c8fb6; box-shadow: 0 0 0 3px #33679122; }
+.postgres-page .postgres-workspace code {
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: #9ad7c8;
+}
+.postgres-page .postgres-db-chip-wrap {
+  display: inline-flex;
+  align-items: stretch;
+  max-width: 100%;
+}
+.postgres-page .postgres-db-chip {
+  display: grid;
+  gap: 2px;
+  border: 1px solid #35565f;
+  border-radius: 10px 0 0 10px;
+  background: #123039;
+  padding: 8px 10px;
+  color: #d5eef0;
+  text-align: left;
+  cursor: pointer;
+}
+.postgres-page .postgres-db-chip-wrap:has(.postgres-db-chip:only-child) .postgres-db-chip,
+.postgres-page .postgres-db-chip.course {
+  border-radius: 10px;
+}
+.postgres-page .postgres-db-chip strong {
+  font: 650 12px/1.2 "DM Sans", sans-serif;
+  color: #f2fbfc;
+}
+.postgres-page .postgres-db-chip span {
+  font: 500 10px/1.3 "DM Sans", sans-serif;
+  color: #8eafb8;
+}
+.postgres-page .postgres-db-chip.active {
+  border-color: #4f8fa8;
+  background: linear-gradient(180deg, #1a4552, #143943);
+  box-shadow: inset 0 0 0 1px #4f8fa855;
+}
+.postgres-page .postgres-db-chip.course strong::after {
+  content: "";
+}
+.postgres-page .postgres-db-drop {
+  border: 1px solid #35565f;
+  border-left: 0;
+  border-radius: 0 10px 10px 0;
+  background: #182f36;
+  padding: 0 8px;
+  color: #9bb3b8;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.postgres-page .postgres-db-drop:hover {
+  color: #ffd0d0;
+  background: #2a1717;
+}
+.postgres-page .postgres-db-input {
+  min-width: min(100%, 180px);
+  flex: 1 1 160px;
+  border: 1px solid #35565f;
+  border-radius: 8px;
+  outline: none;
+  background: #0f2229;
+  padding: 8px 10px;
+  color: #e7f4f6;
+  font: 12.5px/1.4 "DM Mono", monospace;
+}
+.postgres-page .postgres-db-input:focus {
+  border-color: #4f8fa8;
+  box-shadow: 0 0 0 3px #33679133;
+}
+.postgres-page .postgres-db-input:disabled {
+  opacity: 0.55;
+}
+.postgres-page .postgres-mini-btn {
+  border: 1px solid #3a5f6a;
+  border-radius: 999px;
+  background: #14343e;
+  padding: 7px 11px;
+  color: #d5eef0;
+  font: 600 11px/1 "DM Sans", sans-serif;
+  cursor: pointer;
+}
+.postgres-page .postgres-mini-btn:hover:not(:disabled) {
+  border-color: #4f8fa8;
+  background: #1a4552;
+}
+.postgres-page .postgres-mini-btn.accent {
+  border-color: #3f7f6d;
+  background: #154036;
+  color: #b9f0d8;
+}
+.postgres-page .postgres-mini-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.postgres-page .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.home-page .postgres-art { background-color: #edf4fa; background-image: radial-gradient(#b7d0e5 1px, transparent 1px); background-size: 17px 17px; }
+.home-page .postgres-art::before { display: none; }
+.home-page .postgres-card-mark { position: relative; z-index: 1; display: block; width: 120px; height: 124px; transform: none; animation: none; object-fit: contain; }
