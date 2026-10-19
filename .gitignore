@@ -1,9 +1,9 @@
 node_modules/
+.next/
 .env
 .env.*
 !.env.example
 *service-account*.json
 *-firebase-adminsdk-*.json
 .qodo/
-obsidian/.env
-.env
+obsidian/

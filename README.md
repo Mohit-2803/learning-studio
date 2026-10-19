@@ -1,57 +1,53 @@
 # Learning Studio
 
-A local course hub for learning software tools through clear lessons and hands-on examples. The landing page at `/` links to two courses:
+Learning Studio is a Next.js App Router application for practical GraphQL and Docker courses. The migration keeps the current course content, browser labs, progress tracking, Firebase sign-in, and visual layout while moving routing, server endpoints, and access checks into Next.js.
 
-- **GraphQL** at `/courses/graphql/`: an 18 chapter path from client/server fundamentals through schema design, pagination, errors, authorization, resolver performance, API security, subscriptions, and a final practice lab.
-- **Docker** at `/courses/docker/`: a 20 chapter path from Engine and containers through Compose, health, capacity, image design, secrets, registries, least privilege, operational diagnosis, and a final capstone.
+## Run locally
 
-## Start the project
-
-You need Node.js 18 or newer and npm.
+Use Node.js 20.9 or newer.
 
 ```sh
 npm install
-npm start
+npm run dev
 ```
 
-Open <http://localhost:3000> to browse the course catalog. The GraphQL sample library is stored in memory, so added books and reading status changes reset when you restart the server.
+Open <http://localhost:3000>. `npm run build` creates a production build and `npm start` serves it.
 
-## Firebase accounts and saved progress
+## Routes
 
-Firebase Authentication provides email/password and Google sign-in. Cloud Firestore stores a learner's course position, GraphQL challenge and interview progress, Docker interview progress, and Docker lab project state at `users/{uid}/progress/course-progress`. Learners enter through the account page from the course library; course links carry their destination through sign-in or account creation.
+- `/` — course catalog
+- `/auth/` — sign-in and account creation
+- `/courses/graphql/` — GraphQL course (requires sign-in)
+- `/courses/docker/` — Docker course (requires sign-in)
+- `/graphql` — GraphQL teaching API (requires sign-in)
+- `/api/state` and `/api/reset` — authenticated teaching-data endpoints
+- `/api/firebase-config` — public Firebase web-app configuration
+- `/api/health` — deployment health check
 
-1. In Firebase Console, enable **Email/Password** and **Google** under Authentication → Sign-in method. Add `localhost` to Authentication → Settings → Authorized domains if it is not already listed.
-2. Create a **Cloud Firestore** database. After creation, publish the rules from [`firestore.rules`](./firestore.rules) in Firestore → Rules. They restrict progress access to the signed-in owner.
-3. Copy [`.env.example`](./.env.example) to `.env` if needed. The Firebase project values from the registered web app are already in the local, ignored `.env`; fill in `FIREBASE_API_KEY` from the web app config.
-4. Start the app with `npm start`. The landing page offers separate **Sign in** and **Create account** actions; choosing a course opens the account page first, then returns the learner to that course. Course headers link back to the same account flow when a learner wants to sync progress.
+Course pages and their APIs verify a Firebase ID token stored in an HttpOnly server-session cookie. The browser client exchanges and refreshes the token through `/api/auth/session`. Firestore rules in [`firestore.rules`](./firestore.rules) restrict saved progress to its owner.
 
-The Firebase web API key identifies the project; it is public client configuration. The server exposes only the six Firebase web config fields through `/api/firebase-config`; it never sends other environment variables to the browser. Do not add service-account JSON, private keys, or other server credentials to `public/`. Firebase Storage is not needed for course progress because there are no user file uploads; Firestore is the appropriate store for this structured data. The GraphQL demo API remains a local teaching API and does not use Firebase authentication to protect its sample records.
+## Firebase setup
 
-## What to explore
+1. Enable Email/Password and Google providers in Firebase Authentication. Add `localhost` and your deployed hostname to Authorized domains.
+2. Create Firestore and publish [`firestore.rules`](./firestore.rules).
+3. Copy [`.env.example`](./.env.example) to `.env` and set the Firebase web app values. These values are client configuration; never add service-account credentials to the browser or repository.
 
-The GraphQL lessons progress from foundations to applied query and schema work, then cover cursor pagination, error behavior, authorization boundaries, N+1 resolver work, query-cost controls, and real-time trade-offs. Each chapter has its own experiment; the final lab gathers the examples, fourteen hands-on challenges, and twelve interview questions. The live API implements cursor pagination and exposes resolver traces. It deliberately has no authentication, authorization, or query-cost enforcement; those production concerns are explained as design exercises rather than represented as working safeguards.
+Render receives the same values as environment variables. See [`RENDER_DEPLOY.md`](./RENDER_DEPLOY.md).
 
-The Docker course progresses from Engine startup through images, containers, networking, persistence, Compose, build cache, health, resource limits, multi-stage images, secret hygiene, registry workflows, least privilege, and evidence-based operations. Each chapter has context, pitfalls, learning checks, and a hands-on mission. The final lab has fourteen goals and twelve interview scenarios. The modeled Engine starts off; learners start it and check `docker info` before using daemon commands. The browser terminal simulates common CLI behavior and object changes without starting Docker on the host or contacting a registry. Commands such as `docker tag` and `docker push` are explicitly simulated. Docker security and isolation settings are recorded for learning but are not applied to the host kernel.
-
-The Node.js server defines a schema, validates each operation, and runs resolver functions that read or change the sample data. The GraphQL course sends POST requests to `/graphql`; `GET /api/state` returns live sample data and `POST /api/reset` restores it. The current sample data lives in memory rather than a database; a real resolver can call an existing database or service. If a backend currently offers only REST, it needs a GraphQL server or gateway as well—using GraphQL in React alone does not add GraphQL support to the backend. For example:
-
-```json
-{"query":"{ books { title author } }"}
-```
-
-Queries read data. Mutations modify the in-memory sample data. `server/schema.js` describes the API contract, `server/data.js` owns starter data and reset behavior, and `server/resolvers.js` contains query and mutation logic.
-
-## Project structure
+## Project layout
 
 ```text
-Learning/
-├── server.js                 # Static server and GraphQL HTTP endpoint
-├── server/                   # Schema, resolvers, and in-memory sample data
-├── public/
-│   ├── index.html            # Course catalog
-│   ├── shared.css            # Shared type and layout defaults
-│   └── courses/
-│       ├── graphql/          # GraphQL course page, styling, and lesson logic
-│       └── docker/           # Docker course page, styling, and simulator
-└── obsidian/                 # Course notes and reusable learning blueprint
+src/
+  app/                     Next routes, layouts, API handlers, and one global stylesheet
+  components/              Shared React behaviors and page content boundary (TSX)
+  content/page-content.ts  Preserved course and catalog markup during migration
+  lib/                     Firebase session verification and app helpers (TypeScript)
+  server/                  GraphQL schema, resolvers, and sample data (TypeScript)
+public/
+  scripts/                 Browser interactions and course simulations
+  brand-mark.svg           Learning Studio brand mark
 ```
+
+The App Router owns the document shell and each URL through `src/app/layout.tsx` and route components; Next.js does not use a hand-maintained `index.html` entry point. Each App Router page component is the source of truth for its route UI, preserving the original course content and interaction hooks. App and server code use TypeScript/TSX; the existing browser course engines remain JavaScript assets so their current interactive behavior stays unchanged. All app CSS is consolidated in `src/app/styles.css`; component files contain no inline CSS.
+
+The GraphQL teaching library is in memory, so sample book changes reset when the server restarts and are not shared across multiple server instances. Replace that store with a shared database before scaling horizontally.

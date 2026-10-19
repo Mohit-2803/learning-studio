@@ -1,4 +1,5 @@
 * text=auto
 *.html linguist-documentation
 *.css linguist-documentation
-*.js linguist-documentation=false
+*.js -linguist-documentation
+*.md linguist-documentation=false
